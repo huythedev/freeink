@@ -1,5 +1,5 @@
-name: Publish signed macOS release
-run-name: Attach FreeInk Mac v${{ inputs.version }}
+name: macOS signed release (Apple Developer ID required)
+run-name: SIGNED FreeInk Mac v${{ inputs.version }}
 on:
   workflow_dispatch:
     inputs:
@@ -42,7 +42,7 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          [[ -n "$MAC_CERT" && -n "$MAC_PASSWORD" && -n "$APPLE_EMAIL" && -n "$APPLE_PASSWORD" && -n "$APPLE_TEAM" ]] || { echo 'Configure MAC_CSC_LINK, MAC_CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID as Actions secrets'; exit 1; }
+          [[ -n "$MAC_CERT" && -n "$MAC_PASSWORD" && -n "$APPLE_EMAIL" && -n "$APPLE_PASSWORD" && -n "$APPLE_TEAM" ]] || { echo 'Signed DMG requires a paid Apple Developer ID and notarization secrets. For a FREE unsigned DMG instead, go to Actions > Publish unsigned macOS test DMG. Missing secrets: MAC_CSC_LINK, MAC_CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID'; exit 1; }
       - name: Install packages and test
         run: |
           npm ci
