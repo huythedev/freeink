@@ -1,119 +1,98 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
-  <meta name="theme-color" content="#ffffff" />
-  <title>FreeInk — handwritten notes</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f9ff">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="FreeInk is a free, open-source handwriting and note-taking app for Windows and macOS. Draw, organize notes, import files, and export beautifully sharp vector PDFs.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FreeInk">
+  <meta property="og:title" content="FreeInk — Make room for every idea">
+  <meta property="og:description" content="Write freely. Think visually. A free, open-source notebook for Windows and macOS.">
+  <meta property="og:url" content="https://huythedev.github.io/freeink/">
+  <meta property="og:image" content="https://huythedev.github.io/freeink/assets/freeink-editor.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://huythedev.github.io/freeink/">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>FreeInk — Make room for every idea</title>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"FreeInk","applicationCategory":"ProductivityApplication","operatingSystem":"Windows, macOS","isAccessibleForFree":true,"license":"https://github.com/huythedev/freeink/blob/main/LICENSE","url":"https://huythedev.github.io/freeink/","downloadUrl":"https://github.com/huythedev/freeink/releases/latest","author":{"@type":"Person","name":"huythedev"}}</script>
+  <script src="main.js" defer></script>
 </head>
 <body>
-  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-    <symbol id="i-update" viewBox="0 0 24 24"><path d="M20 7V3h-4M20 3l-5 5a7 7 0 1 0 2 8M4 17v4h4M4 21l5-5"/></symbol>
-    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
-    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-    <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
-    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-2"/></symbol>
-    <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h2"/></symbol>
-    <symbol id="i-save" viewBox="0 0 24 24"><path d="M4 4h13l3 3v13H4zM7 4v6h10V4M7 20v-7h10v7"/></symbol>
-    <symbol id="i-pen" viewBox="0 0 24 24"><path d="m4 20 5.4-1.2L20 8.2 15.8 4 5.2 14.6 4 20ZM13.5 6.3l4.2 4.2"/></symbol>
-    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20 9 18.5 20 7.5 16.5 4 5.5 15ZM14.3 6.2l3.5 3.5"/><path d="m5.5 15 3.5 3.5"/></symbol>
-    <symbol id="i-highlighter" viewBox="0 0 24 24"><path d="m5 14 8.5-9 5.5 5.5-8.5 9H5v-5.5ZM3 22h18M13.5 5l5.5 5.5"/></symbol>
-    <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m4 14 9-10a2 2 0 0 1 3 0l5 5a2 2 0 0 1 0 3l-8 8H8l-4-4a1.5 1.5 0 0 1 0-2ZM10 9l8 8M13 20h8"/></symbol>
-    <symbol id="i-lasso" viewBox="0 0 24 24"><path d="M8 17c-5-1-6-7-2-11 4-4 13-2 14 4s-6 9-11 7-1-5 2-4c3 2-1 6-1 8" stroke-dasharray="3 2"/></symbol>
-    <symbol id="i-shape" viewBox="0 0 24 24"><path d="M3 3h9v9H3zM16 5a4 4 0 1 1 0 8 4 4 0 0 1 0-8ZM13 20l4-6 4 6z"/></symbol>
-    <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6V4h16v2M12 4v16M8 20h8"/></symbol>
-    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 12V6a1.5 1.5 0 0 1 3 0v5-7a1.5 1.5 0 0 1 3 0v7-6a1.5 1.5 0 0 1 3 0v7-4a1.5 1.5 0 0 1 3 0v7c0 5-3 7-8 7-3 0-5-3-7-7l-1-2a1.5 1.5 0 0 1 2-2l2 1"/></symbol>
-    <symbol id="i-ruler" viewBox="0 0 24 24"><path d="m3 17 14-14 4 4L7 21zM11 9l3 3M8 12l2 2M14 6l2 2"/></symbol>
-    <symbol id="i-paper" viewBox="0 0 24 24"><path d="M6 2h9l4 4v16H6zM15 2v5h4M9 12h7M9 16h7"/></symbol>
-    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m4 18 6-6 4 4 3-3 4 4"/></symbol>
-    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h9l4 4v16H6zM15 2v5h4M9 12h7M9 16h5"/></symbol>
-    <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3v13M7 11l5 5 5-5M4 17v4h16v-4"/></symbol>
-    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
-    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></symbol>
-    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
-    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V4H4v12h4"/></symbol>
-    <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
-    <symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
-    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-7-2-10-1v15c4-1 8-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1ZM12 5v15"/></symbol>
-    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></symbol>
-    <symbol id="i-zoom-in" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6M6 10h8M10 6v8"/></symbol>
-    <symbol id="i-zoom-out" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6M6 10h8"/></symbol>
-    <symbol id="i-move" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20m-14-6 4-4 4 4m-8 12 4 4 4-4M6 8l-4 4 4 4m12-8 4 4-4 4"/></symbol>
-  </svg>
-  <div id="app">
-    <header class="app-topbar">
-      <div class="top-left">
-        <button class="icon-button top-control" id="gallery-toggle" title="Notebook gallery" data-i18n-title="Notebook gallery" aria-label="Toggle gallery" data-i18n-aria="Toggle gallery"><svg><use href="#i-menu"/></svg></button>
-        <div class="app-logo" title="FreeInk — free handwriting"><span class="logo-mark">f<span>.</span></span><span class="app-name">FreeInk</span></div>
-        <span class="header-divider"></span>
-        <button class="icon-button top-control" id="new-note" title="New note (Ctrl+N)" data-i18n-title="New note (Ctrl+N)"><svg><use href="#i-plus"/></svg></button>
-        <button class="icon-button top-control" id="save-note" title="Save note (Ctrl+S)" data-i18n-title="Save note (Ctrl+S)"><svg><use href="#i-save"/></svg></button>
-        <button class="icon-button top-control" id="undo" title="Undo (Ctrl+Z)" data-i18n-title="Undo (Ctrl+Z)"><svg><use href="#i-undo"/></svg></button>
-        <button class="icon-button top-control" id="redo" title="Redo (Ctrl+Y)" data-i18n-title="Redo (Ctrl+Y)"><svg><use href="#i-redo"/></svg></button>
+  <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
+  <div class="top-glow" aria-hidden="true"></div>
+  <header class="site-header" id="top">
+    <nav class="nav-shell wrap" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="FreeInk home">
+        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M11 28.5 27.9 11.7a3.6 3.6 0 0 1 5.1 5.1L16.1 33.5 8 35z" fill="#fff"/><path d="m23 17 5 5M11 28.5l5 5M7.5 36.5h25" stroke="#d1dcff" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span>Free<span class="brand-accent">Ink</span><span class="brand-period">.</span></span>
+      </a>
+      <button type="button" class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="nav-content"><span></span><span></span><span></span></button>
+      <div class="nav-links" id="nav-content">
+        <a href="#features" data-i18n="navFeatures">Features</a>
+        <a href="#preview" data-i18n="navPreview">Preview</a>
+        <a href="#faq" data-i18n="navFaq">FAQ</a>
+        <a class="nav-github" href="https://github.com/huythedev/freeink" rel="noopener noreferrer" target="_blank" aria-label="GitHub source repository"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.11.76-.24.76-.54v-2.1c-3.1.68-3.75-1.32-3.75-1.32-.5-1.28-1.24-1.62-1.24-1.62-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 .1.97 1.97 3.27 1.4a2.41 2.41 0 0 1 .72-1.52c-2.48-.28-5.1-1.24-5.1-5.54 0-1.22.44-2.23 1.17-3.02a4.07 4.07 0 0 1 .12-2.98s.94-.3 3.08 1.16a10.68 10.68 0 0 1 5.6 0c2.14-1.46 3.08-1.16 3.08-1.16a4.08 4.08 0 0 1 .12 2.98 4.3 4.3 0 0 1 1.17 3.02c0 4.31-2.62 5.25-5.11 5.53a2.7 2.7 0 0 1 .77 2.1v3.12c0 .3.2.66.77.54A11.2 11.2 0 0 0 12 .8Z"/></svg><span>GitHub</span></a>
+        <div class="language-picker" role="group" aria-label="Website language"><button class="lang-btn is-active" type="button" data-lang="en" aria-pressed="true">EN</button><span aria-hidden="true">/</span><button class="lang-btn" type="button" data-lang="vi" aria-pressed="false">VI</button></div>
+        <a href="#download" class="nav-download" data-i18n="navDownload">Get FreeInk <span aria-hidden="true">↗</span></a>
       </div>
-      <div class="top-middle"><input id="note-title" aria-label="Note title" data-i18n-aria="Note title" value="Untitled note" spellcheck="false"><span class="saved-indicator" id="saved-indicator"><span class="saved-dot"></span> Saved</span></div>
-      <div class="top-right">
-        <label class="lang-control" title="Language / Ngôn ngữ"><span data-i18n="Language">Language</span><select id="language-select" aria-label="Language / Ngôn ngữ"><option value="en">EN</option><option value="vi">VI</option></select></label>
-        <button class="text-button guide-button" id="guide-btn" type="button" data-i18n-title="User guide" title="User guide"><svg><use href="#i-book"/></svg><span data-i18n="Guide">Guide</span></button>
-        <button class="text-button update-button" id="update-btn" title="Check for updates from GitHub Releases" data-i18n-title="Check for updates from GitHub Releases"><svg><use href="#i-update"/></svg><span id="update-label" data-i18n="Updates">Updates</span></button>
-        <button class="text-button" id="import-btn" title="Import image, PDF, DOCX or FreeInk note" data-i18n-title="Import image, PDF, DOCX or FreeInk note"><svg><use href="#i-file"/></svg><span data-i18n="Import">Import</span></button>
-        <button class="primary-button" id="export-btn" title="Export note" data-i18n-title="Export note"><svg><use href="#i-export"/></svg><span><span data-i18n="Export">Export</span> <svg class="chevron"><use href="#i-chevron"/></svg></span></button>
-        <button class="icon-button" id="options-btn" title="More options" data-i18n-title="More options"><svg><use href="#i-dots"/></svg></button>
-      </div>
-    </header>
+    </nav>
+  </header>
 
-    <div class="workspace">
-      <aside id="sidebar" class="sidebar" aria-label="Note gallery">
-        <div class="sidebar-heading"><div><div class="eyebrow" data-i18n="YOUR WORKSPACE">YOUR WORKSPACE</div><h2 data-i18n="My notes">My notes</h2></div><button class="icon-button" id="sidebar-close" title="Close gallery" data-i18n-title="Close gallery"><svg><use href="#i-close"/></svg></button></div>
-        <button id="sidebar-new" data-language-control="1" class="create-note"><svg><use href="#i-plus"/></svg> <span data-i18n="New notebook page">New notebook page</span></button>
-        <div class="search-wrap"><svg><use href="#i-search"/></svg><input id="note-search" placeholder="Search notes..." data-i18n-placeholder="Search notes..." aria-label="Search notes" data-i18n-aria="Search notes"/></div>
-        <div class="sidebar-section"><span data-i18n="ALL NOTES">ALL NOTES</span><span id="notes-count">0</span></div>
-        <div class="note-list" id="note-list"></div>
-        <div class="sidebar-foot"><span class="local-dot"></span> <span data-i18n="Saved locally on this device">Saved locally on this device</span> <div data-i18n="Free forever · No account needed">Free forever · No account needed</div></div>
-      </aside>
-      <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
-      <main class="editor">
-        <div class="ribbon" role="toolbar" aria-label="Drawing toolbar">
-          <div class="ribbon-tools">
-            <button data-tool="pen" class="tool-button active" title="Pen (P)" data-i18n-title="Pen (P)"><svg><use href="#i-pen"/></svg><span data-i18n="Pen">Pen</span></button>
-            <button data-tool="pencil" class="tool-button" title="Pencil (K)" data-i18n-title="Pencil (K)"><svg><use href="#i-pencil"/></svg></button>
-            <button data-tool="highlighter" class="tool-button" title="Highlighter (H)" data-i18n-title="Highlighter (H)"><svg><use href="#i-highlighter"/></svg></button>
-            <button data-tool="eraser" class="tool-button" title="Erase object (E)" data-i18n-title="Erase object (E)"><svg><use href="#i-eraser"/></svg></button>
-            <span class="ribbon-divider"></span>
-            <button data-tool="lasso" class="tool-button" title="Lasso select (L)" data-i18n-title="Lasso select (L)"><svg><use href="#i-lasso"/></svg></button>
-            <button data-tool="shape" class="tool-button" title="Shapes (S)" data-i18n-title="Shapes (S)"><svg><use href="#i-shape"/></svg></button>
-            <button data-tool="text" class="tool-button" title="Text (T)" data-i18n-title="Text (T)"><svg><use href="#i-text"/></svg></button>
-            <button data-tool="hand" class="tool-button" title="Hand / pan (Space)" data-i18n-title="Hand / pan (Space)"><svg><use href="#i-hand"/></svg></button>
-            <span class="ribbon-divider"></span>
-            <button class="tool-button" id="ruler-toggle" title="Toggle ruler" data-i18n-title="Toggle ruler"><svg><use href="#i-ruler"/></svg></button>
-          </div>
-          <span class="ribbon-divider ribbon-responsive"></span>
-          <div class="colors" id="color-palette" aria-label="Ink colors" data-i18n-aria="Ink colors"></div>
-          <input id="custom-color" class="color-input" type="color" value="#3e4656" aria-label="Custom ink color" title="Choose custom color" data-i18n-title="Choose custom color" />
-          <div class="ribbon-grow"></div>
-          <div class="stroke-width-wrap"><span class="width-icon" id="width-preview"></span><input id="stroke-width" type="range" min="1" max="24" value="3" aria-label="Ink thickness" data-i18n-aria="Ink thickness" title="Stroke width" data-i18n-title="Stroke width"/><span class="width-value" id="width-value">3</span></div>
-          <span class="ribbon-divider"></span>
-          <button class="tool-button paper-btn" id="template-btn" title="Choose paper template" data-i18n-title="Choose paper template"><svg><use href="#i-paper"/></svg><span data-i18n="Paper">Paper</span><svg class="mini-chevron"><use href="#i-chevron"/></svg></button>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-orb" aria-hidden="true"></span><span data-i18n="eyebrow">YOUR IDEAS. NO LIMITS. NO PRICE TAG.</span></div>
+        <h1 id="hero-title"><span data-i18n="heroLine1">Make room for</span><br><span class="ideas-word" data-i18n="heroLine2">every idea<span class="hand-swoosh" aria-hidden="true"><svg viewBox="0 0 332 28" preserveAspectRatio="none"><path d="M4 21c87-24 232-24 322-7" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></span></span><span class="hero-dot">.</span></h1>
+        <p class="hero-desc" data-i18n="heroDesc">A beautiful little home for your handwriting, sketches, and big thoughts. Write naturally, organize freely, and export razor-sharp PDFs—without subscriptions.</p>
+        <div class="hero-buttons">
+          <a id="hero-windows" class="btn btn-primary" href="https://github.com/huythedev/freeink/releases/download/v0.2.1/FreeInk-0.2.1-x64.exe" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M2 4.4 11 3v8H2zm10-1.6L22 1v10H12zM2 13h9v8l-9-1.4zm10 0h10v10l-10-1.6z"/></svg><span data-i18n="downloadWin">Download for Windows</span><svg class="button-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <a class="btn btn-soft" href="#download"><span data-i18n="otherDownloads">Other downloads</span><span aria-hidden="true">↗</span></a>
         </div>
-        <div class="document-area" id="document-area">
-          <div class="pages" id="pages"></div>
-          <div class="end-of-pages"><button id="add-page" data-language-control="1" class="add-page"><svg><use href="#i-plus"/></svg> <span data-i18n="Add page">Add page</span></button><span data-i18n="Keep your ideas flowing">Keep your ideas flowing</span></div>
+        <p class="hero-note"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10 4 4 8-8" stroke="currentColor" fill="none" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="heroNote">Open source · Free forever · No account needed</span></p>
+      </div>
+      <div class="hero-art" aria-label="Illustration of the FreeInk notebook interface">
+        <div class="art-halo art-halo-a" aria-hidden="true"></div><div class="art-halo art-halo-b" aria-hidden="true"></div>
+        <div class="art-sparkle art-sparkle-a" aria-hidden="true">✳</div><div class="art-sparkle art-sparkle-b" aria-hidden="true">✦</div>
+        <div class="app-scene">
+          <div class="app-scene-top"><div class="app-logo-mini">f<span>.</span></div><strong>FreeInk</strong><div class="app-file-label">Untitled ideas <span>⌄</span></div><div class="app-scene-top-right"><span class="top-dot"></span><span>Saved</span><span class="mock-share">↗</span></div></div>
+          <div class="scene-tools"><div class="tool active"><svg viewBox="0 0 24 24"><path d="m5 19 4-1 10-10-3-3L6 15zM14 7l3 3"/></svg></div><div class="tool"><svg viewBox="0 0 24 24"><path d="m5 19 4-1 10-10-3-3L6 15z"/></svg></div><div class="tool"><svg viewBox="0 0 24 24"><path d="m4 14 9-9 7 7-8 8H7z"/></svg></div><i class="tool-separator"></i><div class="color black"></div><div class="color blue"></div><div class="color coral"></div><div class="color yellow"></div><div class="tool-lines" aria-hidden="true"><span></span><span></span><span></span></div></div>
+          <div class="scene-body"><div class="scene-sidebar"><div class="scene-side-line"></div><div class="scene-side-line short"></div><div class="scene-side-line"></div><div class="scene-thumbnail"><div></div><div></div><div></div></div><span>1 / 1</span></div><div class="scene-paper-wrap"><div class="scene-paper"><div class="paper-inner"><div class="scribble-label">MY LITTLE NOTEBOOK</div><svg class="paper-drawing" viewBox="0 0 385 350" role="img" aria-label="Hand-drawn ideas and shapes on ruled paper"><path d="M32 72c50-34 122-33 168-2" class="ink-blue"/><path d="M36 86c40-29 127-29 164-3" class="ink-light"/><text x="29" y="54" class="draw-text-big">Ideas start here.</text><path d="M32 104c46 3 115 2 172-1" class="ink-coral"/><path d="M35 150c22 15 53 12 69-8" class="ink-purple"/><path d="M126 151h70m-7-6 7 6-7 6" class="ink-blue"/><circle cx="60" cy="220" r="30" class="ink-coral"/><path d="M85 222C122 217 133 222 151 240M149 234l3 6-8 2" class="ink-blue"/><rect x="152" y="202" width="102" height="65" rx="12" class="ink-purple"/><path d="M168 226h65m-65 15h47" class="ink-blue"/><path d="M240 94l15 12 18-19-1 26 26 9-26 10-5 29-18-19-24 14 6-27-21-17 27-2z" class="ink-yellow"/><path d="m78 298 9-13 8 13 16-17 19 17" class="ink-coral"/><path d="M188 294c20-18 56-20 76-4" class="ink-blue"/><path d="M271 275q9 3 4 11" class="ink-blue"/><circle cx="61" cy="219" r="3" fill="#f78168"/><circle cx="64" cy="206" r="3" fill="#f78168"/></svg><div class="paper-footer">one page at a time ♡</div></div></div></div>
+          <div class="app-scene-bottom"><span><i></i> Ready to ink</span><span>Page 1 of 1</span><span>100%</span></div>
         </div>
-        <footer class="statusbar">
-          <div class="status-left"><span class="status-ready"><span></span> Ready to ink</span><span class="status-divider"></span><span id="page-status">Page 1 of 1</span><span class="status-divider"></span><span id="template-status">Ruled paper</span></div>
-          <div class="status-right"><span data-i18n="Scroll to navigate">Scroll to navigate</span><span class="status-divider"></span><button id="zoom-out" class="icon-button compact" title="Zoom out" data-i18n-title="Zoom out"><svg><use href="#i-zoom-out"/></svg></button><span id="zoom-display">100%</span><button id="zoom-in" class="icon-button compact" title="Zoom in" data-i18n-title="Zoom in"><svg><use href="#i-zoom-in"/></svg></button><button class="zoom-fit" id="zoom-fit" data-i18n-title="Fit page width" title="Fit page width"><span data-i18n="Fit">Fit</span></button></div>
-        </footer>
-      </main>
-    </div>
-  </div>
-  <div id="popup-layer"></div>
-  <div id="toast" role="status" class="toast"></div>
-  <input type="file" id="file-import" accept=".pdf,.docx,.json,.freeink,.png,.jpg,.jpeg,.webp,.gif" hidden/>
-  <input type="file" id="image-import" accept="image/*" hidden/>
-  <script src="i18n.js" defer></script>
-  <script src="vector-pdf.js" defer></script>
-  <script src="app.js" defer></script>
+        <div class="floating-label floating-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.4 6.4L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.6Z" fill="currentColor"/></svg><span data-i18n="floatTop">Your space to think</span></div>
+        <div class="floating-label floating-bottom"><span class="float-sticker" aria-hidden="true">✏️</span><span data-i18n="floatBottom">Made to create</span></div>
+      </div>
+    </section>
+
+    <section class="trustbar wrap" aria-label="Highlights"><div class="trust-cell"><span class="trust-icon">✳</span><div><strong data-i18n="trust1Title">Truly free</strong><span data-i18n="trust1Desc">No subscriptions, ever.</span></div></div><div class="trust-cell"><span class="trust-icon">⌁</span><div><strong data-i18n="trust2Title">Offline-first</strong><span data-i18n="trust2Desc">Your notes stay on your device.</span></div></div><div class="trust-cell"><span class="trust-icon">∞</span><div><strong data-i18n="trust3Title">Vector-sharp</strong><span data-i18n="trust3Desc">Zoom way in, stay crystal clear.</span></div></div></section>
+
+    <section class="section features-section wrap" id="features" aria-labelledby="features-title">
+      <div class="section-heading"><div><div class="section-eyebrow" data-i18n="featuresKicker">THE TOOLS YOU NEED</div><h2 id="features-title" data-i18n="featuresTitle">A little more freedom<br>for every thought.</h2></div><p data-i18n="featuresDesc">Whether it's a quick note or a page full of diagrams, FreeInk gives your ideas room to grow.</p></div>
+      <div class="feature-grid">
+        <article class="feature-card large card-blue"><div class="feature-art illustration-stroke"><svg viewBox="0 0 430 175" fill="none" aria-hidden="true"><path d="M39 135c37-74 78-111 130-82s15 114 64 92c48-21 34-95 82-98 37-2 38 40 61 29" stroke="#4776fd" stroke-width="11" stroke-linecap="round"/><path d="M107 59c55-24 123-19 179 12" stroke="#ff8a7b" stroke-width="5" stroke-linecap="round" opacity=".7"/><circle cx="360" cy="129" r="13" fill="#ffe49a"/><path d="m358 117 4 24" stroke="#d59d36" stroke-width="3" stroke-linecap="round"/></svg><div class="art-tool-pill">✎ <span>Pen</span><span class="art-swatches"><i></i><i></i><i></i></span></div></div><h3 data-i18n="feat1Title">Write like you mean it.</h3><p data-i18n="feat1Body">Pens, pencils, highlighters, shapes and an eraser—ready for your next great scribble.</p></article>
+        <article class="feature-card card-peach"><div class="feature-art illustration-paper"><div class="mini-note"><i></i><i></i><i></i><svg viewBox="0 0 160 75" aria-hidden="true"><path d="M19 44c26-37 49 36 79-13 13-18 20-16 42-10" stroke="#fb7b66" fill="none" stroke-width="6" stroke-linecap="round"/></svg></div><span class="page-count">01 / 12</span></div><h3 data-i18n="feat2Title">Pages for every project.</h3><p data-i18n="feat2Body">Keep everything together with multiple pages, searchable notebooks and paper templates.</p></article>
+        <article class="feature-card card-lilac"><div class="feature-art illustration-pdf"><div class="pdf-sheet"><span>PDF</span><svg viewBox="0 0 130 70"><path d="M10 48c21-37 39-17 57-22 15-3 19-22 53-10" stroke="#6b57df" stroke-width="6" stroke-linecap="round" fill="none"/></svg></div><span class="pdf-zoom">800% <span>↗</span></span></div><h3 data-i18n="feat3Title">Export without the blur.</h3><p data-i18n="feat3Body">Handwriting and shapes export as real PDF vectors, so they stay sharp when you zoom.</p></article>
+        <article class="feature-card card-green"><div class="feature-art illustration-import"><div class="format-label format-pdf">.PDF</div><div class="format-label format-docx">.DOCX</div><div class="format-label format-image">.PNG</div><div class="format-arrow">↘</div></div><h3 data-i18n="feat4Title">Bring your files along.</h3><p data-i18n="feat4Body">Paste screenshots, insert images, and import PDF or DOCX documents in the desktop app.</p></article>
+        <article class="feature-card card-cream"><div class="feature-art illustration-local"><div class="local-disc"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 10h24l6 6v22H6V16z" stroke="#345e9f" stroke-width="3" fill="none" stroke-linejoin="round"/><path d="M15 29l7 7 12-14" fill="none" stroke="#345e9f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="local-star">✳</span></div><h3 data-i18n="feat5Title">Keep your thoughts yours.</h3><p data-i18n="feat5Body">Local autosave, editable .freeink backups and no account required. Your work stays in your hands.</p></article>
+        <article class="feature-card card-ink"><div class="feature-art illustration-open"><div class="open-braces"><span>{</span><span class="open-heart">♥</span><span>}</span></div><div class="mini-tag">MIT LICENSE</div></div><h3 data-i18n="feat6Title">Open source. Open possibilities.</h3><p data-i18n="feat6Body">Made in the open, free to use and improve. See the code, contribute, or make it your own.</p></article>
+      </div>
+    </section>
+
+    <section class="preview-section" id="preview" aria-labelledby="preview-title"><div class="wrap preview-wrap"><div class="section-eyebrow" data-i18n="previewKicker">A PEEK INSIDE</div><h2 id="preview-title" data-i18n="previewTitle">An actual look at FreeInk.</h2><p class="preview-lead" data-i18n="previewDesc">A familiar, distraction-light workspace built around your notes. Here’s an editor capture from an earlier working prototype.</p><div class="screenshot-frame"><div class="screenshot-chrome"><span></span><span></span><span></span><p>FreeInk · Windows editor preview</p></div><img src="assets/freeink-editor.png" alt="Actual FreeInk editor screenshot showing drawing tools and an imported editable DOCX document" loading="lazy" width="1300" height="900"></div><div class="preview-foot"><span data-i18n="previewCaption">Real app capture · Earlier v0.2 prototype</span><a href="https://github.com/huythedev/freeink" target="_blank" rel="noopener noreferrer"><span data-i18n="previewLink">Explore the source code</span> <span aria-hidden="true">↗</span></a></div></div></section>
+
+    <section class="download-section section wrap" id="download" aria-labelledby="download-title"><div class="section-eyebrow" data-i18n="downloadKicker">READY WHEN YOU ARE</div><div class="section-heading download-heading"><div><h2 id="download-title" data-i18n="downloadTitle">Your next idea is waiting.</h2></div><p data-i18n="downloadDesc">Choose your platform and get creating. No account or subscription required.</p></div><div class="download-grid">
+      <article class="download-card download-windows"><div class="platform-icon"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="m3 7 13-2v13H3zM19 4.6 33 2v16H19zM3 21h13v12L3 30.7zm16 0h14v13l-14-2.6z" fill="currentColor"/></svg></div><div class="platform-text"><h3>Windows</h3><p data-i18n="windowsDesc">Best for Windows desktops and pen-enabled devices.</p></div><div class="download-card-bottom"><div class="version-wrap"><span class="latest-badge" data-i18n="latest">LATEST RELEASE</span> <span class="version-text" data-version>v0.2.1</span></div><a id="download-exe" class="btn btn-white" href="https://github.com/huythedev/freeink/releases/download/v0.2.1/FreeInk-0.2.1-x64.exe"><span data-i18n="windowsExe">Download .EXE</span><span aria-hidden="true">↓</span></a><a id="download-msi" class="alt-download" href="https://github.com/huythedev/freeink/releases/download/v0.2.1/FreeInk-0.2.1-x64.msi"><span data-i18n="windowsMsi">Prefer an MSI installer?</span> <span aria-hidden="true">↗</span></a></div></article>
+      <article class="download-card download-mac"><div class="platform-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17 12.3c0-2.3 1.9-3.5 2-3.6a4.3 4.3 0 0 0-3.3-1.8c-1.4-.1-2.7.8-3.4.8-.8 0-1.8-.8-3-.8-1.6 0-3.1.9-4 2.3-1.7 2.9-.4 7.2 1.1 9.5.8 1.2 1.7 2.5 2.9 2.5s1.6-.8 3-.8 1.8.8 3 .8 1.9-1.1 2.6-2.3a9.5 9.5 0 0 0 1.2-2.5A4 4 0 0 1 17 12.3ZM14.9 5.4a5.2 5.2 0 0 0 1.2-3.8 5.6 5.6 0 0 0-3.5 1.8 5 5 0 0 0-1.2 3.6 4.7 4.7 0 0 0 3.5-1.6Z"/></svg></div><div class="platform-text"><h3>macOS</h3><p data-i18n="macDesc">Universal build for Apple Silicon and Intel Macs.</p></div><div class="download-card-bottom"><div class="version-wrap"><span class="mac-badge" data-i18n="unsigned">UNSIGNED TEST BUILD</span> <span class="version-text" data-version>v0.2.1</span></div><a id="download-dmg" class="btn btn-white" href="https://github.com/huythedev/freeink/releases/download/v0.2.1/FreeInk-0.2.1-mac-universal.dmg"><span data-i18n="macDmg">Download .DMG</span><span aria-hidden="true">↓</span></a><span class="mac-warning" data-i18n="macWarning">Unsigned: macOS may require manual Gatekeeper approval. No automatic updates.</span></div></article>
+    </div><div class="download-help"><span data-i18n="downloadHelp">Want all versions or source files?</span><a href="https://github.com/huythedev/freeink/releases" rel="noopener noreferrer" data-i18n="allReleases">View all GitHub Releases →</a></div></section>
+
+    <section class="faq-section section wrap" id="faq" aria-labelledby="faq-title"><div class="section-eyebrow" data-i18n="faqKicker">GOOD TO KNOW</div><h2 id="faq-title" data-i18n="faqTitle">A few quick answers.</h2><div class="faq-grid"><div class="faq-column"><details><summary data-i18n="faq1Q">Is FreeInk really free?</summary><p data-i18n="faq1A">Yes. FreeInk is an independent, MIT-licensed open-source project. There are no subscriptions or account requirements.</p></details><details><summary data-i18n="faq2Q">Where are my notes saved?</summary><p data-i18n="faq2A">Notes are saved locally in the app's browser-backed storage. There is no cloud sync. Export a .freeink backup regularly, especially before reinstalling or moving computers.</p></details><details><summary data-i18n="faq3Q">Will my PDF handwriting look blurry?</summary><p data-i18n="faq3A">Ink and shapes are exported as vectors, so they remain sharp when zoomed in. Imported photos and scanned PDF backgrounds are raster images and retain their original resolution limits.</p></details></div><div class="faq-column"><details><summary data-i18n="faq4Q">Can I import PDF and Word documents?</summary><p data-i18n="faq4A">Yes in the desktop app. PDF pages are rasterized as backgrounds for annotation, and DOCX text is converted into editable blocks with approximate formatting. The standalone HTML has fewer import features.</p></details><details><summary data-i18n="faq5Q">Why does macOS warn about FreeInk?</summary><p data-i18n="faq5A">The current Mac build is unsigned and not notarized. Gatekeeper may block its first launch. Only approve it through Apple's documented process if you trust the file and source.</p></details><details><summary data-i18n="faq6Q">How do updates work?</summary><p data-i18n="faq6A">The installed Windows EXE can check for GitHub updates inside FreeInk. MSI users install newer MSI packages manually. Unsigned Mac builds currently use manual downloads.</p></details></div></div><div class="faq-help"><span data-i18n="moreQuestions">Still have a question?</span><a href="https://github.com/huythedev/freeink/blob/main/MANUAL.md" target="_blank" rel="noopener noreferrer"><span data-i18n="readManual">Read the bilingual user guide</span> <span aria-hidden="true">↗</span></a></div></section>
+
+    <section class="closing-section"><div class="wrap closing-wrap"><div class="closing-star" aria-hidden="true">✳</div><div><div class="closing-eyebrow" data-i18n="closingKicker">A BLANK PAGE IS A NEW BEGINNING</div><h2 data-i18n="closingTitle">Go make something<br>amazing.</h2><p data-i18n="closingDesc">Your next favorite idea is just a stroke away.</p></div><a class="btn btn-closing" href="#download"><span data-i18n="closingButton">Start writing for free</span> <span aria-hidden="true">↗</span></a><div class="closing-squiggle" aria-hidden="true"><svg viewBox="0 0 240 100"><path d="M10 77c28-69 52-78 65-38s38 31 51-3 40-32 52 9 43 33 53-5" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg></div></div></section>
+  </main>
+  <footer class="site-footer"><div class="wrap footer-main"><a class="brand footer-brand" href="#top"><span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M11 28.5 27.9 11.7a3.6 3.6 0 0 1 5.1 5.1L16.1 33.5 8 35z" fill="#fff"/></svg></span><span>Free<span class="brand-accent">Ink</span><span class="brand-period">.</span></span></a><p data-i18n="footerDesc">More freedom for your ideas. Built openly and shared freely.</p><div class="footer-nav"><a href="https://github.com/huythedev/freeink" data-i18n="footerSource">Source code</a><a href="https://github.com/huythedev/freeink/blob/main/MANUAL.md" data-i18n="footerManual">User guide</a><a href="https://github.com/huythedev/freeink/issues" data-i18n="footerIssues">Report a bug</a><a href="https://github.com/huythedev/freeink/blob/main/LICENSE" data-i18n="footerLicense">MIT license</a></div></div><div class="wrap footer-bottom"><span>© <span id="year">2026</span> FreeInk · <span data-i18n="footerIndependent">Independent open-source project.</span></span><span data-i18n="footerNonAffiliated">Not affiliated with Scrble Ink or Microsoft.</span></div></footer>
 </body>
 </html>

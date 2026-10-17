@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://huythedev.github.io/freeink/sitemap.xml
