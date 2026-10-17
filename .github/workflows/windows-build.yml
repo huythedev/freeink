@@ -1,0 +1,32 @@
+name: Windows installer (test build)
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Check vector PDF encoder
+        run: npm test
+      - name: Build NSIS setup (without publishing a release)
+        env:
+          FREEINK_GITHUB_REPO: huythedev/freeink
+          CI: ''
+        run: npm run release:win
+      - name: Upload Windows test installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: FreeInk-Windows-test-installer
+          path: dist/*.exe
+          if-no-files-found: error
+          retention-days: 7
