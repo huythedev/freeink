@@ -36,7 +36,9 @@
       "!*.md",
       "!*.bat",
       "!FreeInk-Standalone.html",
-      "!node_modules/.cache/**"
+      "!node_modules/.cache/**",
+      "!node_modules/@napi-rs/canvas/**",
+      "!node_modules/@napi-rs/canvas-*/**"
     ],
     "asarUnpack": [
       "node_modules/pdfjs-dist/build/**/*",
