@@ -1,0 +1,26 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript
+        run: |
+          node --check electron.js
+          node --check preload.js
+          node --check updater.js
+          node --check app.js
+          node --check server.js
+          node --check vector-pdf.js
+          node --check scripts/build-windows.cjs
+      - name: Test vector PDF writer
+        run: npm test

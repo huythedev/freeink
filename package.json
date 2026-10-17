@@ -1,0 +1,61 @@
+{
+  "name": "freeink-windows-prototype",
+  "productName": "FreeInk",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Offline-first handwriting notebook with resolution-independent PDF export and GitHub Releases updates",
+  "license": "MIT",
+  "main": "electron.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "node server.js",
+    "dist:win": "electron-builder --win nsis --publish never",
+    "test": "node tests/vector-pdf.test.cjs",
+    "release:win": "node scripts/build-windows.cjs",
+    "dist:portable": "electron-builder --win portable --publish never"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^5.3.93",
+    "electron-updater": "^6.6.2",
+    "mammoth": "^1.9.0"
+  },
+  "devDependencies": {
+    "electron": "^36.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "org.freeink.prototype",
+    "productName": "FreeInk",
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!.github/**",
+      "!tests/**",
+      "!scripts/**",
+      "!*.md",
+      "!*.bat",
+      "!FreeInk-Standalone.html",
+      "!node_modules/.cache/**"
+    ],
+    "asarUnpack": [
+      "node_modules/pdfjs-dist/build/**/*",
+      "node_modules/pdfjs-dist/wasm/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "FreeInk-${version}-${arch}.${ext}",
+      "icon": "assets/app.ico"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
