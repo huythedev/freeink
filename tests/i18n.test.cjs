@@ -20,3 +20,7 @@ i18n.setLanguage('en');
 assert.equal(translatedText.textContent,'My notes');
 assert.equal(document.documentElement.lang,'en');
 console.log('Vietnamese/English interface and preference tests pass.');
+
+// The packaged desktop HTTP server must serve the translation module.
+const serverSource=fs.readFileSync(require('node:path').resolve(__dirname,'../server.js'),'utf8');
+assert.match(serverSource,/const allowed=\[[^\]]*'i18n\.js'/);
