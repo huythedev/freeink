@@ -1,0 +1,101 @@
+name: Publish unsigned macOS test DMG
+run-name: Attach unsigned FreeInk Mac v${{ inputs.version }}
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Existing published version (e.g. 0.2.1); publish the Windows release first'
+        required: true
+        type: string
+      acknowledge_unsigned:
+        description: 'I understand that this unsigned test build can be blocked by macOS Gatekeeper and does not support automatic updates.'
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: freeink-macos-unsigned-release
+  cancel-in-progress: false
+jobs:
+  attach-unsigned-mac:
+    if: github.ref == 'refs/heads/main' && inputs.acknowledge_unsigned
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository and tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify version and existing published release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Version must look like 0.2.1'; exit 1; }
+          if ! gh release view "v$VERSION" --json isDraft --jq '.isDraft' | grep -qx 'false'; then
+            echo "::error::The published v$VERSION release is missing. Run and FINISH the Windows release workflow before this Mac workflow."
+            exit 1
+          fi
+          git fetch --force origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
+          git checkout --detach "refs/tags/v$VERSION"
+          node -e 'const p=require("./package.json");if(p.version!==process.env.VERSION)throw Error("The tag has a different package version")'
+          if gh release view "v$VERSION" --json assets --jq '.assets[].name' | grep -Eq "^FreeInk-${VERSION}-mac-universal\.(dmg|zip)$"; then
+            echo "::error::A macOS package already exists on this release. Do not overwrite it; publish a new version if necessary."
+            exit 1
+          fi
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Create macOS icon
+        run: bash scripts/make-macos-icon.sh
+      - name: Build unsigned Universal DMG and ZIP
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          FREEINK_REQUIRE_SIGNED: 'false'
+          FREEINK_GITHUB_REPO: huythedev/freeink
+        run: npm run dist:mac
+      - name: Check output and prepare unsigned build notice
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          test -s "dist-mac/FreeInk-${VERSION}-mac-universal.dmg"
+          test -s "dist-mac/FreeInk-${VERSION}-mac-universal.zip"
+          shasum -a 256 dist-mac/*.dmg dist-mac/*.zip > dist-mac/SHA256SUMS-mac.txt
+          cat > dist-mac/UNSIGNED-MAC-READ-ME.txt <<'NOTICE'
+          FreeInk macOS TEST BUILD - UNSIGNED / NOT NOTARIZED
+
+          This build is distributed for voluntary testing only.
+          macOS Gatekeeper may block opening the application downloaded from GitHub.
+          Verify the source, release and SHA256 hashes before deciding to trust it.
+          Do not disable Gatekeeper or remove quarantine flags system-wide.
+          If you trust the build, Apple documents an individual Open Anyway option:
+          https://support.apple.com/102445
+
+          In-app macOS automatic updates are disabled for unsigned builds.
+          A signed and notarized Developer ID release is recommended for public use.
+          NOTICE
+      - name: Attach test packages to existing release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          gh release upload "v$VERSION" \
+            dist-mac/*.dmg dist-mac/*.zip \
+            dist-mac/SHA256SUMS-mac.txt dist-mac/UNSIGNED-MAC-READ-ME.txt
+          {
+            echo "### Unsigned macOS test build uploaded"
+            echo "DMG and ZIP attached to the published v$VERSION release."
+            echo "These files are **not notarized** and **do not** support macOS automatic updates."
+            echo "Do not present this workflow as a signed distribution."
+          } >> "$GITHUB_STEP_SUMMARY"
