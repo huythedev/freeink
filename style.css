@@ -17,3 +17,7 @@
 .update-button[data-status="available"],.update-button[data-status="downloaded"]{color:#1c69b3;background:#e7f1ff;border-color:#b9d9fc}
 .update-button[data-status="downloading"]{opacity:.75}
 @media(max-width:900px){.update-button span{display:none}}
+/* Language toggle and built-in manual */
+.lang-control{display:flex;align-items:center;gap:5px;color:#687b90;font-size:11px;white-space:nowrap}.lang-control select{height:29px;padding:0 7px;border:1px solid #d9e1ec;background:#fff;border-radius:7px;font:600 11px inherit;color:#36506e;cursor:pointer}
+.guide-button{white-space:nowrap}.guide-content{max-height:min(55vh,500px);overflow:auto;line-height:1.55;color:#3f5067;font-size:12px}.guide-content h3{color:#274d7c;font-size:13px;margin:12px 0 5px}.guide-content p{margin:0 0 9px;color:#556b83;font-size:12px}.guide-content ul{padding-left:18px;margin:3px 0 12px}.guide-content li{margin:4px 0}.guide-content kbd{font-size:11px;background:#edf3fa;padding:2px 5px;border-radius:4px}.guide-dialog{width:min(630px,100%)}
+@media(max-width:900px){.lang-control>span,.guide-button span{display:none}}@media(max-width:760px){.lang-control{gap:0}.lang-control select{padding:0 3px;max-width:47px}}

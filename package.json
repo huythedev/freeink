@@ -1,18 +1,19 @@
 {
   "name": "freeink-windows-prototype",
   "productName": "FreeInk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
-  "description": "Offline-first handwriting notebook with resolution-independent PDF export and GitHub Releases updates",
+  "description": "Offline-first multilingual handwriting app for Windows and macOS, with vector PDF and GitHub updates",
   "license": "MIT",
   "main": "electron.js",
   "scripts": {
     "start": "electron .",
     "dev": "node server.js",
     "dist:win": "node scripts/build-windows.cjs",
-    "test": "node tests/vector-pdf.test.cjs",
+    "test": "node tests/vector-pdf.test.cjs && node tests/i18n.test.cjs",
     "release:win": "node scripts/build-windows.cjs",
-    "dist:portable": "electron-builder --win portable --publish never"
+    "dist:portable": "electron-builder --win portable --publish never",
+    "dist:mac": "node scripts/build-macos.cjs"
   },
   "dependencies": {
     "pdfjs-dist": "^5.3.93",
@@ -65,6 +66,14 @@
       "runAfterFinish": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "artifactName": "FreeInk-${version}-mac-${arch}.${ext}"
     }
   }
 }

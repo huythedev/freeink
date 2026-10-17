@@ -3,3 +3,7 @@ dist/
 *.log
 .DS_Store
 .env
+
+dist-mac/
+assets/app.icns
+assets/FreeInk.iconset/

@@ -1,0 +1,35 @@
+name: macOS universal (test build)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install packages
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Create Mac icon
+        run: bash scripts/make-macos-icon.sh
+      - name: Build unsigned Universal DMG and ZIP (test only)
+        run: npm run dist:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          FREEINK_GITHUB_REPO: huythedev/freeink
+      - name: Upload macOS test package
+        uses: actions/upload-artifact@v4
+        with:
+          name: FreeInk-macOS-universal-unsigned-TEST
+          path: |
+            dist-mac/*.dmg
+            dist-mac/*.zip
+          retention-days: 7
+          if-no-files-found: error

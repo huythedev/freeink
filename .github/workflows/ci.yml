@@ -19,8 +19,10 @@ jobs:
           node --check preload.js
           node --check updater.js
           node --check app.js
+          node --check i18n.js
           node --check server.js
           node --check vector-pdf.js
           node --check scripts/build-windows.cjs
+          node --check scripts/build-macos.cjs
       - name: Test vector PDF writer
         run: npm test

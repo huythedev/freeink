@@ -60,6 +60,8 @@ jobs:
         env:
           FREEINK_GITHUB_REPO: ${{ github.repository }}
           FREEINK_RELEASE_VERSION: ${{ inputs.version }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: npm run release:win
 
       - name: Verify both installers and updater manifest

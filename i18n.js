@@ -1,0 +1,99 @@
+/* FreeInk interface translations — note content is deliberately never translated. */
+(function (global) {
+  'use strict';
+  const storageKey = 'freeink-ui-language';
+  const dictionary = {
+    'Notebook gallery':'Thư viện ghi chú','Toggle gallery':'Mở/đóng thư viện','New note (Ctrl+N)':'Ghi chú mới (Ctrl+N)',
+    'Save note (Ctrl+S)':'Lưu ghi chú (Ctrl+S)','Undo (Ctrl+Z)':'Hoàn tác (Ctrl+Z)',
+    'Redo (Ctrl+Y)':'Làm lại (Ctrl+Y)','Note title':'Tiêu đề ghi chú','Saved':'Đã lưu',
+    'Saving…':'Đang lưu…','Storage full':'Bộ nhớ đầy','Updates':'Cập nhật',
+    'Check for updates from GitHub Releases':'Kiểm tra cập nhật từ GitHub Releases',
+    'Import':'Nhập tệp','Import image, PDF, DOCX or FreeInk note':'Nhập hình ảnh, PDF, DOCX hoặc ghi chú FreeInk',
+    'Export':'Xuất tệp','Export note':'Xuất ghi chú','More options':'Tùy chọn khác',
+    'YOUR WORKSPACE':'KHÔNG GIAN CỦA BẠN','My notes':'Ghi chú của tôi','Close gallery':'Đóng thư viện',
+    'New notebook page':'Ghi chú mới','Search notes...':'Tìm ghi chú…','Search notes':'Tìm ghi chú',
+    'ALL NOTES':'TẤT CẢ GHI CHÚ','Saved locally on this device':'Được lưu trên thiết bị này',
+    'Free forever · No account needed':'Miễn phí mãi mãi · Không cần tài khoản',
+    'Pen':'Bút mực','Pen (P)':'Bút mực (P)','Pencil':'Bút chì','Pencil (K)':'Bút chì (K)','Highlighter':'Bút đánh dấu','Highlighter (H)':'Bút đánh dấu (H)','Erase object (E)':'Xóa đối tượng (E)',
+    'Lasso select (L)':'Khoanh chọn (L)','Shapes (S)':'Hình dạng (S)','Text (T)':'Văn bản (T)',
+    'Hand / pan (Space)':'Di chuyển trang (Space)','Toggle ruler':'Hiện/ẩn thước',
+    'Ink colors':'Màu mực','Custom ink color':'Màu mực tùy chỉnh','Choose custom color':'Chọn màu tùy chỉnh',
+    'Ink thickness':'Độ dày nét bút','Stroke width':'Độ dày nét bút',
+    'Paper':'Giấy','Choose paper template':'Chọn mẫu giấy','Add page':'Thêm trang',
+    'Keep your ideas flowing':'Tiếp tục ghi lại ý tưởng','Ready to ink':'Sẵn sàng viết',
+    'Scroll to navigate':'Cuộn để di chuyển','Zoom out':'Thu nhỏ','Zoom in':'Phóng to',
+    'Fit':'Vừa trang','Fit page width':'Vừa chiều rộng trang',
+    'Ruled paper':'Giấy kẻ dòng','Blank paper':'Giấy trắng','Graph paper':'Giấy ô vuông',
+    'Dot grid':'Giấy chấm','Blackboard':'Bảng đen','Music staff':'Khuông nhạc',
+    'Paper':'Giấy','No matching notes':'Không có ghi chú phù hợp',
+    'Open note':'Mở ghi chú','Note actions':'Tùy chọn ghi chú','Duplicate':'Nhân bản',
+    'Rename':'Đổi tên','Delete note':'Xóa ghi chú','Rename note':'Đổi tên ghi chú',
+    'Give your note a new name.':'Đặt tên mới cho ghi chú.',
+    'Create a new note':'Tạo ghi chú mới','Choose a starting paper style. You can change it later.':'Chọn mẫu giấy ban đầu. Bạn có thể đổi sau.',
+    'New note title':'Tên ghi chú mới','Create note':'Tạo ghi chú','Untitled note':'Ghi chú chưa đặt tên',
+    'Delete this note?':'Xóa ghi chú này?','Note deleted':'Đã xóa ghi chú',
+    'New note created':'Đã tạo ghi chú mới','Note duplicated':'Đã nhân bản ghi chú',
+    'Page added':'Đã thêm trang','Page duplicated':'Đã nhân bản trang',
+    'Apply this paper to all pages':'Áp dụng mẫu giấy cho tất cả trang',
+    'Paper applied to every page':'Đã áp dụng mẫu giấy cho tất cả trang',
+    'PAPER STYLE':'MẪU GIẤY','DRAW A SHAPE':'VẼ HÌNH','Line':'Đường thẳng',
+    'Arrow':'Mũi tên','Rectangle':'Hình chữ nhật','Ellipse / circle':'Hình tròn / elip',
+    'Triangle':'Hình tam giác','NOTE OPTIONS':'TÙY CHỌN GHI CHÚ',
+    'Insert image':'Chèn hình ảnh','Import PDF / DOCX':'Nhập PDF / DOCX',
+    'Paste image / text · Ctrl+V':'Dán ảnh / chữ · Ctrl+V',
+    'Duplicate selected items':'Nhân bản đối tượng đã chọn',
+    'Duplicate current page':'Nhân bản trang hiện tại','Clear current page':'Xóa nội dung trang hiện tại',
+    'Clear this page?':'Xóa nội dung trang này?','Remove all ink, text, and inserted images on this page?':'Xóa tất cả nét viết, văn bản và ảnh trên trang này?',
+    'Clear page':'Xóa trang','Delete current page':'Xóa trang hiện tại',
+    'Keyboard shortcuts':'Phím tắt','About FreeInk':'Giới thiệu FreeInk',
+    'FreeInk · Prototype':'FreeInk · Bản thử nghiệm',
+    'A free, offline-first handwriting notebook inspired by the workflow of Windows inking apps. Your notes are stored in your browser/desktop app on this device. Export a .freeink backup for safekeeping.':'Ứng dụng viết tay miễn phí, ưu tiên sử dụng ngoại tuyến. Ghi chú được lưu trên thiết bị. Hãy xuất tệp .freeink để sao lưu.',
+    'Use these while your focus is on the canvas.':'Sử dụng khi không nhập văn bản.',
+    'Lasso selection':'Khoanh chọn','Shapes':'Hình dạng','Pan':'Di chuyển',
+    'Undo':'Hoàn tác','Redo':'Làm lại','Save':'Lưu','New note':'Ghi chú mới',
+    'Delete selected':'Xóa mục đã chọn','Duplicate selection':'Nhân bản vùng chọn',
+    'Got it':'Đã hiểu','Close':'Đóng','Done':'Xong','Cancel':'Hủy',
+    'Type your note…':'Nhập nội dung…',
+    'Vector PDF · all pages, sharp ink':'PDF vector · mọi trang, nét viết sắc nét',
+    'PNG image · current page':'Ảnh PNG · trang hiện tại',
+    'FreeInk file · editable backup':'Tệp FreeInk · bản sao lưu có thể sửa',
+    'EXPORT NOTE':'XUẤT GHI CHÚ',
+    'PNG exported':'Đã xuất PNG','Editable note backed up':'Đã sao lưu ghi chú chỉnh sửa được',
+    'Vector PDF saved · ink remains sharp at any zoom':'Đã lưu PDF vector · nét viết sắc nét ở mọi mức thu phóng',
+    'PDF export failed: ':'Xuất PDF thất bại: ','Unknown error':'Lỗi không xác định',
+    'Image inserted · use Lasso to move or resize it':'Đã chèn ảnh · dùng Khoanh chọn để di chuyển hoặc đổi kích thước',
+    'Invalid note format':'Định dạng ghi chú không hợp lệ','Editable note imported':'Đã nhập ghi chú có thể chỉnh sửa',
+    'Supported: PDF, DOCX, PNG, JPG, WebP, .freeink':'Hỗ trợ: PDF, DOCX, PNG, JPG, WebP, .freeink',
+    'Could not import this file':'Không thể nhập tệp này',
+    'Pasted text · double-click with Text tool to edit':'Đã dán chữ · nhấp đúp bằng công cụ Văn bản để sửa',
+    'Could not save locally. Export your note to keep a copy.':'Không thể lưu trên máy. Hãy xuất ghi chú để giữ bản sao.',
+    'Every note needs at least one page':'Mỗi ghi chú cần ít nhất một trang',
+    'Ruler displayed (visual guide)':'Đã hiện thước (chỉ để căn chỉnh)',
+    'Ruler hidden':'Đã ẩn thước','All changes saved locally':'Đã lưu mọi thay đổi trên thiết bị',
+    'Saved locally':'Đã lưu trên thiết bị','Selection duplicated':'Đã nhân bản vùng chọn',
+    'Automatic updates require the installed Windows NSIS version':'Tự động cập nhật yêu cầu phiên bản cài đặt EXE trên Windows',
+    'Could not update: ':'Không thể cập nhật: ',
+    'Download update':'Tải bản cập nhật','Restart to update':'Khởi động lại để cập nhật',
+    'Downloading…':'Đang tải…','Checking…':'Đang kiểm tra…','MSI updates':'Cập nhật MSI','Mac updates':'Cập nhật Mac',
+    'Check for updates':'Kiểm tra cập nhật','Something went wrong while starting FreeInk':'Đã xảy ra lỗi khi khởi động FreeInk',
+    'User guide':'Hướng dẫn','Guide':'Hướng dẫn','Language':'Ngôn ngữ','Vietnamese':'Tiếng Việt','English':'English',
+    'Page {current} of {total}':'Trang {current}/{total}',
+    '{count} page':'{count} trang','{count} pages':'{count} trang',
+    'Open {title}':'Mở {title}',
+    '{count} PDF pages ready for annotation':'Đã sẵn sàng chú thích trên {count} trang PDF',
+    'Manual & shortcuts':'Hướng dẫn và phím tắt',
+  };
+  let language='en';
+  try {language=localStorage.getItem(storageKey)==='vi'?'vi':'en';}catch{}
+  const translate=(key,vars)=>{let result=language==='vi'?(dictionary[key]||key):key;for(const [name,value] of Object.entries(vars||{}))result=result.replaceAll('{'+name+'}',String(value));return result};
+  function apply(root=document){
+    document.documentElement.lang=language;
+    const elements=[...(root.nodeType===1?[root]:[]),...root.querySelectorAll('[data-i18n],[data-i18n-title],[data-i18n-placeholder],[data-i18n-aria]')];
+    for(const el of elements){
+      if(el.dataset.i18n!==undefined)el.textContent=translate(el.dataset.i18n);
+      for(const [data,attr] of [['i18nTitle','title'],['i18nPlaceholder','placeholder'],['i18nAria','aria-label']])if(el.dataset[data]!==undefined)el.setAttribute(attr,translate(el.dataset[data]));
+    }
+  }
+  function setLanguage(value){language=value==='vi'?'vi':'en';try{localStorage.setItem(storageKey,language)}catch{}apply();document.dispatchEvent(new CustomEvent('freeink:language',{detail:{language}}));}
+  global.FreeInkI18n=Object.freeze({t:translate,getLanguage:()=>language,setLanguage,apply});
+})(window);

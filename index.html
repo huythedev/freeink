@@ -45,63 +45,65 @@
   <div id="app">
     <header class="app-topbar">
       <div class="top-left">
-        <button class="icon-button top-control" id="gallery-toggle" title="Notebook gallery" aria-label="Toggle gallery"><svg><use href="#i-menu"/></svg></button>
+        <button class="icon-button top-control" id="gallery-toggle" title="Notebook gallery" data-i18n-title="Notebook gallery" aria-label="Toggle gallery" data-i18n-aria="Toggle gallery"><svg><use href="#i-menu"/></svg></button>
         <div class="app-logo" title="FreeInk — free handwriting"><span class="logo-mark">f<span>.</span></span><span class="app-name">FreeInk</span></div>
         <span class="header-divider"></span>
-        <button class="icon-button top-control" id="new-note" title="New note (Ctrl+N)"><svg><use href="#i-plus"/></svg></button>
-        <button class="icon-button top-control" id="save-note" title="Save note (Ctrl+S)"><svg><use href="#i-save"/></svg></button>
-        <button class="icon-button top-control" id="undo" title="Undo (Ctrl+Z)"><svg><use href="#i-undo"/></svg></button>
-        <button class="icon-button top-control" id="redo" title="Redo (Ctrl+Y)"><svg><use href="#i-redo"/></svg></button>
+        <button class="icon-button top-control" id="new-note" title="New note (Ctrl+N)" data-i18n-title="New note (Ctrl+N)"><svg><use href="#i-plus"/></svg></button>
+        <button class="icon-button top-control" id="save-note" title="Save note (Ctrl+S)" data-i18n-title="Save note (Ctrl+S)"><svg><use href="#i-save"/></svg></button>
+        <button class="icon-button top-control" id="undo" title="Undo (Ctrl+Z)" data-i18n-title="Undo (Ctrl+Z)"><svg><use href="#i-undo"/></svg></button>
+        <button class="icon-button top-control" id="redo" title="Redo (Ctrl+Y)" data-i18n-title="Redo (Ctrl+Y)"><svg><use href="#i-redo"/></svg></button>
       </div>
-      <div class="top-middle"><input id="note-title" aria-label="Note title" value="Untitled note" spellcheck="false"><span class="saved-indicator" id="saved-indicator"><span class="saved-dot"></span> Saved</span></div>
+      <div class="top-middle"><input id="note-title" aria-label="Note title" data-i18n-aria="Note title" value="Untitled note" spellcheck="false"><span class="saved-indicator" id="saved-indicator"><span class="saved-dot"></span> Saved</span></div>
       <div class="top-right">
-        <button class="text-button update-button" id="update-btn" title="Check for updates from GitHub Releases"><svg><use href="#i-update"/></svg><span id="update-label">Updates</span></button>
-        <button class="text-button" id="import-btn" title="Import image, PDF, DOCX or FreeInk note"><svg><use href="#i-file"/></svg><span>Import</span></button>
-        <button class="primary-button" id="export-btn" title="Export note"><svg><use href="#i-export"/></svg><span>Export <svg class="chevron"><use href="#i-chevron"/></svg></span></button>
-        <button class="icon-button" id="options-btn" title="More options"><svg><use href="#i-dots"/></svg></button>
+        <label class="lang-control" title="Language / Ngôn ngữ"><span data-i18n="Language">Language</span><select id="language-select" aria-label="Language / Ngôn ngữ"><option value="en">EN</option><option value="vi">VI</option></select></label>
+        <button class="text-button guide-button" id="guide-btn" type="button" data-i18n-title="User guide" title="User guide"><svg><use href="#i-book"/></svg><span data-i18n="Guide">Guide</span></button>
+        <button class="text-button update-button" id="update-btn" title="Check for updates from GitHub Releases" data-i18n-title="Check for updates from GitHub Releases"><svg><use href="#i-update"/></svg><span id="update-label" data-i18n="Updates">Updates</span></button>
+        <button class="text-button" id="import-btn" title="Import image, PDF, DOCX or FreeInk note" data-i18n-title="Import image, PDF, DOCX or FreeInk note"><svg><use href="#i-file"/></svg><span data-i18n="Import">Import</span></button>
+        <button class="primary-button" id="export-btn" title="Export note" data-i18n-title="Export note"><svg><use href="#i-export"/></svg><span><span data-i18n="Export">Export</span> <svg class="chevron"><use href="#i-chevron"/></svg></span></button>
+        <button class="icon-button" id="options-btn" title="More options" data-i18n-title="More options"><svg><use href="#i-dots"/></svg></button>
       </div>
     </header>
 
     <div class="workspace">
       <aside id="sidebar" class="sidebar" aria-label="Note gallery">
-        <div class="sidebar-heading"><div><div class="eyebrow">YOUR WORKSPACE</div><h2>My notes</h2></div><button class="icon-button" id="sidebar-close" title="Close gallery"><svg><use href="#i-close"/></svg></button></div>
-        <button id="sidebar-new" class="create-note"><svg><use href="#i-plus"/></svg> New notebook page</button>
-        <div class="search-wrap"><svg><use href="#i-search"/></svg><input id="note-search" placeholder="Search notes..." aria-label="Search notes"/></div>
-        <div class="sidebar-section"><span>ALL NOTES</span><span id="notes-count">0</span></div>
+        <div class="sidebar-heading"><div><div class="eyebrow" data-i18n="YOUR WORKSPACE">YOUR WORKSPACE</div><h2 data-i18n="My notes">My notes</h2></div><button class="icon-button" id="sidebar-close" title="Close gallery" data-i18n-title="Close gallery"><svg><use href="#i-close"/></svg></button></div>
+        <button id="sidebar-new" data-language-control="1" class="create-note"><svg><use href="#i-plus"/></svg> <span data-i18n="New notebook page">New notebook page</span></button>
+        <div class="search-wrap"><svg><use href="#i-search"/></svg><input id="note-search" placeholder="Search notes..." data-i18n-placeholder="Search notes..." aria-label="Search notes" data-i18n-aria="Search notes"/></div>
+        <div class="sidebar-section"><span data-i18n="ALL NOTES">ALL NOTES</span><span id="notes-count">0</span></div>
         <div class="note-list" id="note-list"></div>
-        <div class="sidebar-foot"><span class="local-dot"></span> Saved locally on this device <div>Free forever · No account needed</div></div>
+        <div class="sidebar-foot"><span class="local-dot"></span> <span data-i18n="Saved locally on this device">Saved locally on this device</span> <div data-i18n="Free forever · No account needed">Free forever · No account needed</div></div>
       </aside>
       <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
       <main class="editor">
         <div class="ribbon" role="toolbar" aria-label="Drawing toolbar">
           <div class="ribbon-tools">
-            <button data-tool="pen" class="tool-button active" title="Pen (P)"><svg><use href="#i-pen"/></svg><span>Pen</span></button>
-            <button data-tool="pencil" class="tool-button" title="Pencil (K)"><svg><use href="#i-pencil"/></svg></button>
-            <button data-tool="highlighter" class="tool-button" title="Highlighter (H)"><svg><use href="#i-highlighter"/></svg></button>
-            <button data-tool="eraser" class="tool-button" title="Erase object (E)"><svg><use href="#i-eraser"/></svg></button>
+            <button data-tool="pen" class="tool-button active" title="Pen (P)" data-i18n-title="Pen (P)"><svg><use href="#i-pen"/></svg><span data-i18n="Pen">Pen</span></button>
+            <button data-tool="pencil" class="tool-button" title="Pencil (K)" data-i18n-title="Pencil (K)"><svg><use href="#i-pencil"/></svg></button>
+            <button data-tool="highlighter" class="tool-button" title="Highlighter (H)" data-i18n-title="Highlighter (H)"><svg><use href="#i-highlighter"/></svg></button>
+            <button data-tool="eraser" class="tool-button" title="Erase object (E)" data-i18n-title="Erase object (E)"><svg><use href="#i-eraser"/></svg></button>
             <span class="ribbon-divider"></span>
-            <button data-tool="lasso" class="tool-button" title="Lasso select (L)"><svg><use href="#i-lasso"/></svg></button>
-            <button data-tool="shape" class="tool-button" title="Shapes (S)"><svg><use href="#i-shape"/></svg></button>
-            <button data-tool="text" class="tool-button" title="Text (T)"><svg><use href="#i-text"/></svg></button>
-            <button data-tool="hand" class="tool-button" title="Hand / pan (Space)"><svg><use href="#i-hand"/></svg></button>
+            <button data-tool="lasso" class="tool-button" title="Lasso select (L)" data-i18n-title="Lasso select (L)"><svg><use href="#i-lasso"/></svg></button>
+            <button data-tool="shape" class="tool-button" title="Shapes (S)" data-i18n-title="Shapes (S)"><svg><use href="#i-shape"/></svg></button>
+            <button data-tool="text" class="tool-button" title="Text (T)" data-i18n-title="Text (T)"><svg><use href="#i-text"/></svg></button>
+            <button data-tool="hand" class="tool-button" title="Hand / pan (Space)" data-i18n-title="Hand / pan (Space)"><svg><use href="#i-hand"/></svg></button>
             <span class="ribbon-divider"></span>
-            <button class="tool-button" id="ruler-toggle" title="Toggle ruler"><svg><use href="#i-ruler"/></svg></button>
+            <button class="tool-button" id="ruler-toggle" title="Toggle ruler" data-i18n-title="Toggle ruler"><svg><use href="#i-ruler"/></svg></button>
           </div>
           <span class="ribbon-divider ribbon-responsive"></span>
-          <div class="colors" id="color-palette" aria-label="Ink colors"></div>
-          <input id="custom-color" class="color-input" type="color" value="#3e4656" aria-label="Custom ink color" title="Choose custom color" />
+          <div class="colors" id="color-palette" aria-label="Ink colors" data-i18n-aria="Ink colors"></div>
+          <input id="custom-color" class="color-input" type="color" value="#3e4656" aria-label="Custom ink color" title="Choose custom color" data-i18n-title="Choose custom color" />
           <div class="ribbon-grow"></div>
-          <div class="stroke-width-wrap"><span class="width-icon" id="width-preview"></span><input id="stroke-width" type="range" min="1" max="24" value="3" aria-label="Ink thickness" title="Stroke width"/><span class="width-value" id="width-value">3</span></div>
+          <div class="stroke-width-wrap"><span class="width-icon" id="width-preview"></span><input id="stroke-width" type="range" min="1" max="24" value="3" aria-label="Ink thickness" data-i18n-aria="Ink thickness" title="Stroke width" data-i18n-title="Stroke width"/><span class="width-value" id="width-value">3</span></div>
           <span class="ribbon-divider"></span>
-          <button class="tool-button paper-btn" id="template-btn" title="Choose paper template"><svg><use href="#i-paper"/></svg><span>Paper</span><svg class="mini-chevron"><use href="#i-chevron"/></svg></button>
+          <button class="tool-button paper-btn" id="template-btn" title="Choose paper template" data-i18n-title="Choose paper template"><svg><use href="#i-paper"/></svg><span data-i18n="Paper">Paper</span><svg class="mini-chevron"><use href="#i-chevron"/></svg></button>
         </div>
         <div class="document-area" id="document-area">
           <div class="pages" id="pages"></div>
-          <div class="end-of-pages"><button id="add-page" class="add-page"><svg><use href="#i-plus"/></svg> Add page</button><span>Keep your ideas flowing</span></div>
+          <div class="end-of-pages"><button id="add-page" data-language-control="1" class="add-page"><svg><use href="#i-plus"/></svg> <span data-i18n="Add page">Add page</span></button><span data-i18n="Keep your ideas flowing">Keep your ideas flowing</span></div>
         </div>
         <footer class="statusbar">
           <div class="status-left"><span class="status-ready"><span></span> Ready to ink</span><span class="status-divider"></span><span id="page-status">Page 1 of 1</span><span class="status-divider"></span><span id="template-status">Ruled paper</span></div>
-          <div class="status-right"><span>Scroll to navigate</span><span class="status-divider"></span><button id="zoom-out" class="icon-button compact" title="Zoom out"><svg><use href="#i-zoom-out"/></svg></button><span id="zoom-display">100%</span><button id="zoom-in" class="icon-button compact" title="Zoom in"><svg><use href="#i-zoom-in"/></svg></button><button class="zoom-fit" id="zoom-fit" title="Fit page width">Fit</button></div>
+          <div class="status-right"><span data-i18n="Scroll to navigate">Scroll to navigate</span><span class="status-divider"></span><button id="zoom-out" class="icon-button compact" title="Zoom out" data-i18n-title="Zoom out"><svg><use href="#i-zoom-out"/></svg></button><span id="zoom-display">100%</span><button id="zoom-in" class="icon-button compact" title="Zoom in" data-i18n-title="Zoom in"><svg><use href="#i-zoom-in"/></svg></button><button class="zoom-fit" id="zoom-fit" data-i18n-title="Fit page width" title="Fit page width"><span data-i18n="Fit">Fit</span></button></div>
         </footer>
       </main>
     </div>
@@ -110,6 +112,7 @@
   <div id="toast" role="status" class="toast"></div>
   <input type="file" id="file-import" accept=".pdf,.docx,.json,.freeink,.png,.jpg,.jpeg,.webp,.gif" hidden/>
   <input type="file" id="image-import" accept="image/*" hidden/>
+  <script src="i18n.js" defer></script>
   <script src="vector-pdf.js" defer></script>
   <script src="app.js" defer></script>
 </body>

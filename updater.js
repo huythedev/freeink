@@ -20,6 +20,12 @@ function setupUpdater(window){
     ipcMain.handle('freeink:update-action',async()=>({status:'msi',message}));
     return;
   }
+  if(app.isPackaged && process.platform==='darwin' && !require('./package.json').freeinkMacSigned){
+    const message='This unsigned Mac test build is not eligible for automatic updates. Install a signed, notarized DMG release from GitHub.';
+    send('mac-unsigned',message);
+    ipcMain.handle('freeink:update-action',async()=>({status:'mac-unsigned',message}));
+    return;
+  }
   if(!app.isPackaged || !!process.env.PORTABLE_EXECUTABLE_DIR){
     send('dev','Updates work in the installed release, not dev/portable/browser mode.');
     ipcMain.handle('freeink:update-action',async()=>({status:'dev',message:'Build and install an NSIS GitHub Release to enable updates.'}));

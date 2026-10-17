@@ -48,3 +48,8 @@ npm run release:win
 ```
 
 Files are written to `dist/`; the local command **does not publish** anything. Publishing is deliberately handled by the manual GitHub Actions workflow after build verification.
+
+
+## Mac releases and Windows trust warnings
+
+See [CODE-SIGNING.md](CODE-SIGNING.md) for a step-by-step SmartScreen/code signing and Apple Developer ID/notarization setup. On every push, GitHub also builds an unsigned universal Mac test artifact. To publish signed Mac binaries, first publish a **new** Windows version, then run **Publish signed macOS release** manually with that exact version; its DMG/ZIP are attached to the existing release. The macOS workflow does not publish unsigned builds.

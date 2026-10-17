@@ -1,0 +1,76 @@
+name: Publish signed macOS release
+run-name: Attach FreeInk Mac v${{ inputs.version }}
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Existing Windows release version, e.g. 0.2.1 (after Windows release)'
+        type: string
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: freeink-macos-release
+  cancel-in-progress: false
+jobs:
+  macos-release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ inputs.version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check version and published release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid semver'; exit 1; }
+          node -e 'if(require("./package.json").version!==process.env.VERSION)process.exit(1)'
+          gh release view "v$VERSION" --json isDraft --jq '.isDraft' | grep -qx false
+      - name: Validate Apple signing secrets
+        env:
+          MAC_CERT: ${{ secrets.MAC_CSC_LINK }}
+          MAC_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_EMAIL: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          [[ -n "$MAC_CERT" && -n "$MAC_PASSWORD" && -n "$APPLE_EMAIL" && -n "$APPLE_PASSWORD" && -n "$APPLE_TEAM" ]] || { echo 'Configure MAC_CSC_LINK, MAC_CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID as Actions secrets'; exit 1; }
+      - name: Install packages and test
+        run: |
+          npm ci
+          npm test
+      - name: Create Mac icon
+        run: bash scripts/make-macos-icon.sh
+      - name: Sign, notarize and package universal Mac build
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          FREEINK_REQUIRE_SIGNED: 'true'
+        run: npm run dist:mac
+      - name: Verify packages and notarized signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls dist-mac/*.dmg dist-mac/*.zip dist-mac/latest-mac.yml
+          codesign --verify --deep --strict --verbose=2 dist-mac/mac-universal/FreeInk.app
+          spctl --assess --type exec --verbose dist-mac/mac-universal/FreeInk.app
+      - name: Add Mac packages to existing GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          gh release upload "v$VERSION" dist-mac/*.dmg dist-mac/*.zip dist-mac/latest-mac.yml
+          echo "Published signed macOS Universal build for v$VERSION"
