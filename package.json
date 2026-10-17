@@ -9,7 +9,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "node server.js",
-    "dist:win": "electron-builder --win nsis --publish never",
+    "dist:win": "node scripts/build-windows.cjs",
     "test": "node tests/vector-pdf.test.cjs",
     "release:win": "node scripts/build-windows.cjs",
     "dist:portable": "electron-builder --win portable --publish never"
@@ -43,7 +43,8 @@
     ],
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "msi-wrapped"
       ],
       "artifactName": "FreeInk-${version}-${arch}.${ext}",
       "icon": "assets/app.ico"
@@ -56,6 +57,11 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "msiWrapped": {
+      "upgradeCode": "{2F05CC52-4794-5BA8-886B-0C615A724D1D}",
+      "impersonate": true,
+      "wrappedInstallerArgs": "/S"
     }
   }
 }

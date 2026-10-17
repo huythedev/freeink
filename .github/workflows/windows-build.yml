@@ -1,4 +1,4 @@
-name: Windows installer (test build)
+name: Windows installers (test build)
 on:
   push:
     branches: [main]
@@ -16,17 +16,25 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Check vector PDF encoder
+      - name: Test PDF encoder
         run: npm test
-      - name: Build NSIS setup (without publishing a release)
+      - name: Build EXE and MSI without publishing
         env:
           FREEINK_GITHUB_REPO: huythedev/freeink
-          CI: ''
         run: npm run release:win
-      - name: Upload Windows test installer
+      - name: Validate installers
+        shell: pwsh
+        run: |
+          if (-not @(Get-ChildItem dist -Filter '*.exe' -File).Count) { throw 'EXE not built' }
+          if (-not @(Get-ChildItem dist -Filter '*.msi' -File).Count) { throw 'MSI not built' }
+      - name: Upload Windows test installers
         uses: actions/upload-artifact@v4
         with:
-          name: FreeInk-Windows-test-installer
-          path: dist/*.exe
+          name: FreeInk-Windows-EXE-and-MSI
+          path: |
+            dist/*.exe
+            dist/*.msi
+            dist/latest.yml
+            dist/*.blockmap
           if-no-files-found: error
           retention-days: 7

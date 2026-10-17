@@ -1,68 +1,50 @@
-# Publishing FreeInk updates via GitHub Releases
+# Publish FreeInk Windows installers (.exe + .msi) from GitHub Actions
 
-This prototype includes the main updater logic. Replace your existing installed app by releasing a new **full NSIS installer**, not by shipping source-code ZIPs.
+Repository: https://github.com/huythedev/freeink
 
-## 1. Publish the repository
+## Release by clicking a button (no terminal commands required)
 
-Use the public **[`huythedev/freeink`](https://github.com/huythedev/freeink)** GitHub repository and preserve the `.github/workflows/windows-release.yml` directory. A private repository is **not** recommended for normal app users: it requires authenticating each update client. Do not embed a private GitHub API token inside FreeInk.
+1. Go to **[Actions → Publish Windows release (EXE + MSI)](https://github.com/huythedev/freeink/actions/workflows/windows-release.yml)**.
+2. Click **Run workflow**, make sure the selected branch is `main`.
+3. Enter `0.2.0` for the first release (the current prototype), then higher versions such as `0.2.1`, `0.3.0`, `1.0.0` for later releases.
+4. Click the green **Run workflow** button. Wait for a successful run, then open [Releases](https://github.com/huythedev/freeink/releases).
+5. Users download the `FreeInk-<version>-x64.exe` (recommended) or `FreeInk-<version>-x64.msi` file from the published release.
 
-Keep the following consistent between versions:
+The workflow validates the version, refuses to reuse existing tags or downgrade, updates `package.json`, installs dependencies, runs tests, builds **both** Windows packages, and verifies updater metadata. **It only then commits the version and lockfile to `main`, tags the commit, creates a draft, uploads both installers and `latest.yml`, and publishes the release.** No GitHub PAT is needed; the workflow uses the short-lived built-in `GITHUB_TOKEN` with `contents: write`. Never embed this token in the app.
 
-- `package.json` → `build.appId`: `org.freeink.prototype` (changing it is a product migration and can change Windows update/installation identity).
-- GitHub owner/repo used by all installers. This is captured inside the installed application's `app-update.yml` at release build time. Moving or transferring repositories requires a migration strategy.
-- The localhost port `17873` currently serves as the editor's browser storage origin. Don't change it casually if users already have notes.
+If the workflow fails **before creating the tag**, fix the build and rerun the same version. If it fails **after tagging/publishing a draft**, do not simply rerun: open the draft release and determine whether to finish uploading/publishing it or delete the incomplete release and tag before retrying. Only delete an incomplete tag/release you intentionally created; deleting published tags may disrupt updates.
 
-## 2. First version
+GitHub branch rules may prevent GitHub Actions from directly pushing the release version commit to `main`. If so, a repository admin must allow the workflow to write (or adapt the workflow to use a pull request). The workflow does not bypass branch protection.
 
-Update `package.json` to your first intended release version (the prototype starts at `0.2.0`). Push the source. Create a tag matching the version:
+## Which installer?
 
-```bash
-git add .
-git commit -m "Initial FreeInk release"
-git push origin main
-git tag v0.2.0
-git push origin v0.2.0
-```
+- **EXE**: Standard NSIS interactive installer. Recommended for most users, supports in-app updates with `electron-updater`.
+- **MSI**: `msi-wrapped` target: an MSI wrapper containing the *same* NSIS setup. Useful for environments requiring an MSI deployment artifact while retaining the app's NSIS updater. This is **not** a fully native WiX MSI; install **either** MSI **or** EXE on a machine, not both. Both install the same FreeInk app and use the same GitHub update feed.
+- **Standalone HTML / portable**: no automatic replacement of the application.
 
-The GitHub Actions **Windows release** workflow reads `github.repository`, verifies that `v0.2.0` matches the package version and executes `npm run release:win`. The workflow's short-lived `GITHUB_TOKEN` has `contents: write` to publish the NSIS installer, SHA-512/size manifests and `latest.yml` (and `.blockmap` as produced). Check the Releases tab and verify the installation manually.
+For testing changes without publishing a release, use [Actions → Windows installers (test build)](https://github.com/huythedev/freeink/actions/workflows/windows-build.yml). The successful run's **Artifacts** section contains `.exe` and `.msi` test installers. These builds do not create releases and are **not** production auto-update endpoints.
 
-The **first release** is installed by the user once, by downloading its NSIS installer. After that, users can use the app's **Updates** button to check, download, and restart into later releases, without separately visiting GitHub.
+## How updates survive structural code changes
 
-## 3. Publish an update
+`updater.js` runs in Electron's main process, not the editor renderer. `electron-updater` downloads the full NSIS-based app via GitHub's `latest.yml` metadata and installer hash, with an explicit install-and-restart action from the user. Renaming the renderer files or reorganizing dependencies does not inherently break this whole-package update mechanism, as long as the updater and publishing format remain compatible.
 
-Change code, increment `package.json` version from `0.2.0` to `0.2.1`, test, push and tag it:
+Preserve `build.appId` (`org.freeink.prototype`), the repository `huythedev/freeink`, the stable MSI upgrade code, and the note-data origin `127.0.0.1:17873`. Changing them may cause duplicate installations, broken update feeds, or inaccessible local notes. Notebook storage schema changes require tested `migrateLibrary()` migrations and backups; the updater itself cannot repair broken data formats.
 
-```bash
-git add .
-git commit -m "FreeInk v0.2.1"
-git push origin main
-git tag v0.2.1
-git push origin v0.2.1
-```
+## Release testing and security
 
-Ensure the GitHub release is **published** and contains both the `.exe` and `latest.yml`. Updates cannot discover unpublished releases or a ZIP file that lacks update metadata. Test in a clean Windows VM with `0.2.0` installed, checking that `0.2.1` is discovered, downloads, installs and preserves saved notes.
+- Publish `v0.2.0` first and install it on Windows. Then make a small change, publish `v0.2.1` with Run workflow, and test **Updates → Check → Download → Install/restart**. Verify saved notes still open.
+- Unsigned binaries can trigger SmartScreen warnings. For public distribution add Windows code signing and optionally release artifact checksums / provenance.
+- A published GitHub Release must include the `.exe` and `latest.yml` metadata for the in-app updater. MSI alone is not sufficient.
+- Avoid installing both variants simultaneously; the MSI wrapper launches the NSIS installer.
+- Back up `.freeink` notes before testing major application/data migrations. No note data is stored in the GitHub repository.
 
-## 4. How the updater survives structural code changes
+## Local build on Windows
 
-`updater.js` checks GitHub Release version metadata via `electron-updater`. It never applies patches against specific editor paths. NSIS installs the new application package as a whole. Even if `app.js` becomes `src/editor/*`, or dependencies and windows change, the updater can still install the package, *provided future releases continue to ship a functioning updater, compatible update metadata, and same application identity.*
-
-Application data needs separate care: `persist()` saves the `schemaVersion: 2` notebook format in IndexedDB, and `migrateLibrary()` normalizes older note models on load. Every future breaking data format change must add and test a migration. Desktop app-updating cannot automatically repair an incompatible or deleted notebook format, renamed origin, appId or forgotten publishing repository.
-
-## 5. Safety, signing and releases
-
-- Do **not** point update clients at arbitrary user-provided GitHub links or execute downloaded JavaScript. The main-process updater downloads only the configured GitHub provider's installer.
-- Never ship `GH_TOKEN` or `GITHUB_TOKEN` to users. Workflow secret tokens are used only while publishing releases.
-- The update metadata/hash verifies transport integrity, but **code signing is strongly recommended** so Windows can verify the publisher and avoid SmartScreen uncertainty. The prototype does not include a signing certificate.
-- Prefer `npm ci` after you generate and commit a `package-lock.json` from a trusted online `npm install`, for reproducible CI.
-- Do not distribute a portable executable as if it is auto-updatable. The NSIS installer is the supported Windows update target.
-
-## 6. Build a release locally
-
-With `FREEINK_GITHUB_REPO=huythedev/freeink` set in your shell, run:
-
-```bash
+```powershell
 npm install
+npm test
+$env:FREEINK_GITHUB_REPO='huythedev/freeink'
 npm run release:win
 ```
 
-Outside CI this builds the installed NSIS target and its update feed configuration without publishing; release from GitHub Actions to avoid exposing GitHub tokens. On Windows PowerShell set the variable with `$env:FREEINK_GITHUB_REPO='owner/repo'` before running the command.
+Files are written to `dist/`; the local command **does not publish** anything. Publishing is deliberately handled by the manual GitHub Actions workflow after build verification.
