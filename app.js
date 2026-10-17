@@ -258,7 +258,7 @@ function connectUpdater(){
  const button=$('update-btn'),label=$('update-label');
  const setStatus=(value,message)=>{
   latestUpdateStatus=value;button.dataset.status=value;button.title=message||'Check for updates';
-  label.textContent=value==='available'?'Download update':value==='downloaded'?'Restart to update':value==='downloading'?'Downloading…':value==='checking'?'Checking…':'Updates';
+  label.textContent=value==='available'?'Download update':value==='downloaded'?'Restart to update':value==='downloading'?'Downloading…':value==='checking'?'Checking…':value==='msi'?'MSI updates':'Updates';
   if(['available','downloaded','error'].includes(value)&&message)toast(message);
  };
  if(!window.freeinkDesktop){button.onclick=()=>toast('Automatic updates require the installed Windows NSIS version');return}

@@ -11,6 +11,15 @@ function setupUpdater(window){
     stage=status;
     if(!window.isDestroyed())window.webContents.send('freeink:update-status',{status,message,version:app.getVersion(),...more});
   };
+  // Native MSI packages are upgraded by Windows Installer, not electron-updater.
+  // This value is stamped into each packaged app by scripts/build-windows.cjs.
+  const installerType=require('./package.json').freeinkInstallerType;
+  if(app.isPackaged && installerType==='msi'){
+    const message='This MSI installation is updated through Windows Installer. Download the newer MSI from GitHub Releases.';
+    send('msi',message);
+    ipcMain.handle('freeink:update-action',async()=>({status:'msi',message}));
+    return;
+  }
   if(!app.isPackaged || !!process.env.PORTABLE_EXECUTABLE_DIR){
     send('dev','Updates work in the installed release, not dev/portable/browser mode.');
     ipcMain.handle('freeink:update-action',async()=>({status:'dev',message:'Build and install an NSIS GitHub Release to enable updates.'}));

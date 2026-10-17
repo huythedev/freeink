@@ -19,14 +19,14 @@ GitHub branch rules may prevent GitHub Actions from directly pushing the release
 ## Which installer?
 
 - **EXE**: Standard NSIS interactive installer. Recommended for most users, supports in-app updates with `electron-updater`.
-- **MSI**: `msi-wrapped` target: an MSI wrapper containing the *same* NSIS setup. Useful for environments requiring an MSI deployment artifact while retaining the app's NSIS updater. This is **not** a fully native WiX MSI; install **either** MSI **or** EXE on a machine, not both. Both install the same FreeInk app and use the same GitHub update feed.
+- **MSI**: Native Windows Installer built with WiX. Useful for silent, per-machine enterprise deployment and managed upgrades. MSI installs do **not** use `electron-updater`; to upgrade, install a newer MSI version or redeploy through your management system. Install **either** MSI **or** EXE on a machine, not both.
 - **Standalone HTML / portable**: no automatic replacement of the application.
 
 For testing changes without publishing a release, use [Actions → Windows installers (test build)](https://github.com/huythedev/freeink/actions/workflows/windows-build.yml). The successful run's **Artifacts** section contains `.exe` and `.msi` test installers. These builds do not create releases and are **not** production auto-update endpoints.
 
 ## How updates survive structural code changes
 
-`updater.js` runs in Electron's main process, not the editor renderer. `electron-updater` downloads the full NSIS-based app via GitHub's `latest.yml` metadata and installer hash, with an explicit install-and-restart action from the user. Renaming the renderer files or reorganizing dependencies does not inherently break this whole-package update mechanism, as long as the updater and publishing format remain compatible.
+`updater.js` runs in Electron's main process, not the editor renderer. `electron-updater` downloads the full NSIS-based app via GitHub's `latest.yml` metadata and installer hash, with an explicit install-and-restart action from the user. Renaming the renderer files or reorganizing dependencies does not inherently break this whole-package update mechanism for EXE installs, as long as the updater and publishing format remain compatible. Native MSI installations use normal Windows Installer replacement/upgrades instead.
 
 Preserve `build.appId` (`org.freeink.prototype`), the repository `huythedev/freeink`, the stable MSI upgrade code, and the note-data origin `127.0.0.1:17873`. Changing them may cause duplicate installations, broken update feeds, or inaccessible local notes. Notebook storage schema changes require tested `migrateLibrary()` migrations and backups; the updater itself cannot repair broken data formats.
 
@@ -34,8 +34,8 @@ Preserve `build.appId` (`org.freeink.prototype`), the repository `huythedev/free
 
 - Publish `v0.2.0` first and install it on Windows. Then make a small change, publish `v0.2.1` with Run workflow, and test **Updates → Check → Download → Install/restart**. Verify saved notes still open.
 - Unsigned binaries can trigger SmartScreen warnings. For public distribution add Windows code signing and optionally release artifact checksums / provenance.
-- A published GitHub Release must include the `.exe` and `latest.yml` metadata for the in-app updater. MSI alone is not sufficient.
-- Avoid installing both variants simultaneously; the MSI wrapper launches the NSIS installer.
+- A published GitHub Release must include the `.exe` and `latest.yml` metadata for the in-app updater. MSI alone is not sufficient for the EXE in-app update feed.
+- Avoid installing both variants simultaneously; they are separate installation channels.
 - Back up `.freeink` notes before testing major application/data migrations. No note data is stored in the GitHub repository.
 
 ## Local build on Windows

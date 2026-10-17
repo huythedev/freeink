@@ -44,7 +44,7 @@
     "win": {
       "target": [
         "nsis",
-        "msi-wrapped"
+        "msi"
       ],
       "artifactName": "FreeInk-${version}-${arch}.${ext}",
       "icon": "assets/app.ico"
@@ -58,10 +58,13 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },
-    "msiWrapped": {
+    "msi": {
       "upgradeCode": "{2F05CC52-4794-5BA8-886B-0C615A724D1D}",
-      "impersonate": true,
-      "wrappedInstallerArgs": "/S"
+      "oneClick": false,
+      "perMachine": true,
+      "runAfterFinish": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   }
 }
