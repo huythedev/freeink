@@ -76,3 +76,9 @@ npm run dist:win
 **Release with a click:** Open [Actions → Publish Windows release (EXE + MSI)](https://github.com/huythedev/freeink/actions/workflows/windows-release.yml), click **Run workflow** on `main`, enter a version and start. Read [GITHUB-RELEASES.md](GITHUB-RELEASES.md) for recovery notes, unsigned installer warnings, and update tests.
 
 Source code: MIT License. `index.html`, `style.css`, `app.js`, `vector-pdf.js` form the editor; `electron.js`, `preload.js`, `updater.js`, `server.js` form the desktop shell, native bridge, updater and localhost static server.
+
+## macOS Universal builds (Intel + Apple Silicon)
+
+The [macOS test workflow](https://github.com/huythedev/freeink/actions/workflows/macos-build.yml) generates an **unsigned** Universal DMG and ZIP. To add a free **unsigned test** DMG to an already published release, use [Publish unsigned macOS test DMG](https://github.com/huythedev/freeink/actions/workflows/macos-unsigned-release.yml) and enter that version **only after** the Windows release/tag is fully published. The signed and notarized macOS release workflow remains available once Apple Developer ID credentials are configured.
+
+Unsigned test apps may need explicit Gatekeeper approval to open, and in-app Mac auto-updates remain disabled. See [CODE-SIGNING.md](CODE-SIGNING.md) for free Windows signing paths (Store MSIX, eligible SignPath Foundation OSS) and Apple's paid Developer ID option.
