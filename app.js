@@ -5,6 +5,8 @@
 const PAGE_W = 816, PAGE_H = 1056, DB_NAME = 'freeink-notebooks', DB_VERSION = 1;
 const $ = (id) => document.getElementById(id);
 const I = window.FreeInkI18n;
+const Ink = window.FreeInkInk;
+if(!Ink)throw Error('FreeInk ink engine failed to load');
 const t = (message,vars) => I ? I.t(message,vars) : message;
 const uid = () => (globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 const deep = (x) => JSON.parse(JSON.stringify(x));
@@ -13,7 +15,8 @@ const esc = (s) => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':
 const palette = ['#262e3a','#db464c','#f0a829','#49b976','#397cda','#9359cb','#ec78ad','#ffffff'];
 const templateLabels = {ruled:'Ruled paper',blank:'Blank paper',graph:'Graph paper',dots:'Dot grid',dark:'Blackboard',music:'Music staff'};
 const pageEl = $('pages'), area = $('document-area');
-let state = {notes:[],currentId:null,tool:'pen',color:'#262e3a',width:3,shape:'line',zoom:1,sidebar:false,ruler:false,selection:[],gesture:null,db:null,history:[],future:[],saveTimer:null,popup:null,toastTimer:null,saving:false};
+function inkDelayPreference(){try{return localStorage.getItem('freeink-ink-stabilization')==='off'?0:Ink.STABILIZATION_MS}catch{return Ink.STABILIZATION_MS}}
+let state = {notes:[],currentId:null,tool:'pen',color:'#262e3a',width:3,shape:'line',zoom:1,sidebar:false,ruler:false,selection:[],gesture:null,db:null,history:[],future:[],saveTimer:null,popup:null,toastTimer:null,saving:false,inkDelay:inkDelayPreference()};
 const imageCache = new Map();
 const current = () => state.notes.find(n=>n.id===state.currentId);
 const curPage = (idx) => current()?.pages[idx];
@@ -74,7 +77,7 @@ function setWidth(w){state.width=+w;$('stroke-width').value=w;$('width-value').t
 
 // Canvas rendering uses persisted vector strokes. Paper template is a separate CSS layer.
 function getContext(canvas){const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(PAGE_W*dpr)||canvas.height!==Math.round(PAGE_H*dpr)){canvas.width=Math.round(PAGE_W*dpr);canvas.height=Math.round(PAGE_H*dpr)}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return ctx}
-function smoothStroke(ctx,pts,stroke){if(!pts?.length)return;ctx.save();ctx.lineCap='round';ctx.lineJoin='round';const base=stroke.tool==='highlighter'?stroke.width*5:stroke.width;ctx.globalAlpha=stroke.tool==='highlighter'?.28:stroke.tool==='pencil'?.72:1;ctx.strokeStyle=stroke.color;ctx.fillStyle=stroke.color;ctx.lineWidth=base*(.75+(.5*(pts[0].p??.5)));if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x,pts[0].y,ctx.lineWidth/2,0,Math.PI*2);ctx.fill();ctx.restore();return}ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let j=1;j<pts.length-1;j++){const pt=pts[j],n=pts[j+1];ctx.quadraticCurveTo(pt.x,pt.y,(pt.x+n.x)/2,(pt.y+n.y)/2)}const end=pts[pts.length-1];ctx.lineTo(end.x,end.y);ctx.stroke();ctx.restore()}
+function smoothStroke(ctx,pts,stroke){if(!pts?.length)return;if(stroke.inkVersion===2){Ink.drawCanvas(ctx,pts,stroke);return}ctx.save();ctx.lineCap='round';ctx.lineJoin='round';const base=stroke.tool==='highlighter'?stroke.width*5:stroke.width;ctx.globalAlpha=stroke.tool==='highlighter'?.28:stroke.tool==='pencil'?.72:1;ctx.strokeStyle=stroke.color;ctx.fillStyle=stroke.color;ctx.lineWidth=base*(.75+(.5*(pts[0].p??.5)));if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x,pts[0].y,ctx.lineWidth/2,0,Math.PI*2);ctx.fill();ctx.restore();return}ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let j=1;j<pts.length-1;j++){const pt=pts[j],n=pts[j+1];ctx.quadraticCurveTo(pt.x,pt.y,(pt.x+n.x)/2,(pt.y+n.y)/2)}const end=pts[pts.length-1];ctx.lineTo(end.x,end.y);ctx.stroke();ctx.restore()}
 function drawShape(ctx,e){const x=e.x,y=e.y,x2=e.x2,y2=e.y2,w=x2-x,h=y2-y;ctx.save();ctx.lineWidth=e.width;ctx.strokeStyle=e.color;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();switch(e.shape){case'rect':ctx.rect(x,y,w,h);break;case'ellipse':ctx.ellipse(x+w/2,y+h/2,Math.max(1,Math.abs(w/2)),Math.max(1,Math.abs(h/2)),0,0,Math.PI*2);break;case'triangle':ctx.moveTo(x+w/2,y);ctx.lineTo(x2,y2);ctx.lineTo(x,y2);ctx.closePath();break;case'arrow':ctx.moveTo(x,y);ctx.lineTo(x2,y2);const a=Math.atan2(h,w),r=Math.max(12,e.width*5);ctx.moveTo(x2-r*Math.cos(a-.45),y2-r*Math.sin(a-.45));ctx.lineTo(x2,y2);ctx.lineTo(x2-r*Math.cos(a+.45),y2-r*Math.sin(a+.45));break;default:ctx.moveTo(x,y);ctx.lineTo(x2,y2)}ctx.stroke();ctx.restore()}
 function wrapText(ctx,text,maxWidth){const output=[];String(text).split('\n').forEach(raw=>{const parts=raw.split(/\s+/);let line='';for(const part of parts){const candidate=line?line+' '+part:part;if(ctx.measureText(candidate).width>maxWidth&&line){output.push(line);line=part}else line=candidate}output.push(line)});return output}
 function drawText(ctx,e){ctx.save();ctx.fillStyle=e.color||'#24364c';ctx.font=`${e.weight||400} ${e.size||22}px "Segoe UI",Arial,sans-serif`;ctx.textBaseline='top';const lines=wrapText(ctx,e.text,e.w||500);lines.forEach((line,i)=>ctx.fillText(line,e.x,e.y+i*(e.size||22)*1.44));ctx.restore()}
@@ -82,12 +85,42 @@ function imageFor(src,index){if(!src)return null;if(!imageCache.has(src)){const 
 function drawItem(ctx,item,index){switch(item.kind){case'stroke':smoothStroke(ctx,item.points,item);break;case'shape':drawShape(ctx,item);break;case'text':drawText(ctx,item);break;case'image':{const img=imageFor(item.src,index);if(img)ctx.drawImage(img,item.x,item.y,item.w,item.h);break}}}
 function getBounds(item){if(item.kind==='stroke'){const p=item.points;const xs=p.map(v=>v.x),ys=p.map(v=>v.y);const pad=(item.width||3)*(item.tool==='highlighter'?2.5:1)+5;return {x:Math.min(...xs)-pad,y:Math.min(...ys)-pad,w:Math.max(...xs)-Math.min(...xs)+pad*2,h:Math.max(...ys)-Math.min(...ys)+pad*2}}if(item.kind==='shape')return {x:Math.min(item.x,item.x2)-8,y:Math.min(item.y,item.y2)-8,w:Math.abs(item.x2-item.x)+16,h:Math.abs(item.y2-item.y)+16};if(item.kind==='image')return {x:item.x,y:item.y,w:item.w,h:item.h};return {x:item.x,y:item.y,w:item.w||350,h:(item.text?.split('\n').length||1)*(item.size||22)*1.5}}
 function drawSelection(ctx,page){if(!state.selection.length)return;ctx.save();ctx.strokeStyle='#3485ed';ctx.fillStyle='#3485ed';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);page.items.filter(i=>state.selection.includes(i.id)).forEach(item=>{const b=getBounds(item);ctx.strokeRect(b.x-4,b.y-4,b.w+8,b.h+8);ctx.setLineDash([]);for(const [x,y] of [[b.x-4,b.y-4],[b.x+b.w+4,b.y-4],[b.x+b.w+4,b.y+b.h+4],[b.x-4,b.y+b.h+4]])ctx.fillRect(x-3,y-3,6,6);ctx.setLineDash([5,4])});ctx.restore()}
-function drawPage(index){const p=curPage(index);const c=pageEl.querySelectorAll('canvas')[index];if(!p||!c)return;const ctx=getContext(c);ctx.clearRect(0,0,PAGE_W,PAGE_H);for(const item of p.items)drawItem(ctx,item,index);if(state.gesture?.index===index){const g=state.gesture;if(g.mode==='draw')smoothStroke(ctx,g.points,g.stroke);else if(g.mode==='shape')drawShape(ctx,{kind:'shape',shape:state.shape,x:g.start.x,y:g.start.y,x2:g.end.x,y2:g.end.y,color:state.color,width:state.width});else if(g.mode==='lasso'){ctx.save();ctx.beginPath();ctx.moveTo(g.points[0].x,g.points[0].y);for(const v of g.points.slice(1))ctx.lineTo(v.x,v.y);ctx.strokeStyle='#3279d9';ctx.setLineDash([6,4]);ctx.lineWidth=1.5;ctx.stroke();ctx.restore()}}drawSelection(ctx,p)}
+function drawPage(index){const p=curPage(index);const c=pageEl.querySelectorAll('canvas')[index];if(!p||!c)return;const ctx=getContext(c);ctx.clearRect(0,0,PAGE_W,PAGE_H);for(const item of p.items)drawItem(ctx,item,index);if(state.gesture?.index===index){const g=state.gesture;if(g.mode==='draw')smoothStroke(ctx,g.visible||[],g.stroke);else if(g.mode==='shape')drawShape(ctx,{kind:'shape',shape:state.shape,x:g.start.x,y:g.start.y,x2:g.end.x,y2:g.end.y,color:state.color,width:state.width});else if(g.mode==='lasso'){ctx.save();ctx.beginPath();ctx.moveTo(g.points[0].x,g.points[0].y);for(const v of g.points.slice(1))ctx.lineTo(v.x,v.y);ctx.strokeStyle='#3279d9';ctx.setLineDash([6,4]);ctx.lineWidth=1.5;ctx.stroke();ctx.restore()}}drawSelection(ctx,p)}
 function templateOnCanvas(ctx,template){ctx.save();ctx.fillStyle=template==='dark'?'#243340':'white';ctx.fillRect(0,0,PAGE_W,PAGE_H);ctx.lineWidth=1;ctx.strokeStyle='#d8e6f7';if(template==='ruled'){for(let y=31;y<PAGE_H;y+=32){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(PAGE_W,y+.5);ctx.stroke()}ctx.strokeStyle='#ffced0';ctx.beginPath();ctx.moveTo(72,0);ctx.lineTo(72,PAGE_H);ctx.stroke()}if(template==='graph'){for(let x=0;x<PAGE_W;x+=32){ctx.beginPath();ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,PAGE_H);ctx.stroke()}for(let y=0;y<PAGE_H;y+=32){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(PAGE_W,y+.5);ctx.stroke()}}if(template==='dots'){ctx.fillStyle='#b8cde5';for(let x=12;x<PAGE_W;x+=24)for(let y=12;y<PAGE_H;y+=24){ctx.beginPath();ctx.arc(x,y,1.15,0,Math.PI*2);ctx.fill()}}if(template==='music'){for(let y0=19;y0<PAGE_H;y0+=168)for(let t=0;t<5;t++){const y=y0+t*12;ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(PAGE_W,y+.5);ctx.stroke()}}ctx.restore()}
 async function pageToCanvas(page,index,scale=1){const canvas=document.createElement('canvas');canvas.width=Math.round(PAGE_W*scale);canvas.height=Math.round(PAGE_H*scale);const ctx=canvas.getContext('2d');ctx.scale(scale,scale);templateOnCanvas(ctx,page.template);for(const item of page.items){if(item.kind==='image'){let img=imageFor(item.src,index);if(!img){img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=item.src})}ctx.drawImage(img,item.x,item.y,item.w,item.h)}else drawItem(ctx,item,index)}return canvas}
 
 // Pointer-based input works with Windows touchscreens, mice, and pressure-sensitive pens.
-function loc(e,canvas){const r=canvas.getBoundingClientRect();return {x:clamp((e.clientX-r.left)/state.zoom,0,PAGE_W),y:clamp((e.clientY-r.top)/state.zoom,0,PAGE_H),p:e.pointerType==='pen'&&e.pressure>0?e.pressure:.5}}
+function loc(e,canvas){const r=canvas.getBoundingClientRect();return {
+  x:clamp((e.clientX-r.left)/state.zoom,0,PAGE_W),
+  y:clamp((e.clientY-r.top)/state.zoom,0,PAGE_H),
+  p:e.pointerType==='pen'&&e.pressure>0?clamp(e.pressure,.03,1):.5,
+  tx:e.pointerType==='pen'?clamp(e.tiltX||0,-90,90):0,
+  ty:e.pointerType==='pen'?clamp(e.tiltY||0,-90,90):0,
+  twist:e.pointerType==='pen'?(e.twist||0):0
+}}
+// Capture coalesced pen samples at the device input rate; only presentation trails.
+function sampleInk(g,e,canvas){
+  let samples=[];
+  try{samples=typeof e.getCoalescedEvents==='function'?e.getCoalescedEvents():[]}catch{}
+  for(const sample of [...samples,e]){
+    const p=loc(sample,canvas);
+    const clock=performance.now();
+    let time=Number.isFinite(sample.timeStamp)&&Math.abs(sample.timeStamp-clock)<60000?sample.timeStamp:clock;
+    const last=g.points[g.points.length-1];
+    if(last)time=Math.max(time,last.t);
+    Ink.appendSample(g.points,{...p,t:time});
+  }
+}
+function animateInk(g,index){
+  if(g.raf)return;
+  g.raf=requestAnimationFrame(()=>{
+    g.raf=0;
+    if(state.gesture!==g)return;
+    const visible=Ink.visibleSamples(g.points,performance.now(),g.delay);
+    if(visible.length!==g.visible.length){g.visible=visible;drawPage(index)}
+    if(visible.length<g.points.length)animateInk(g,index);
+  });
+}
 function pointSegmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;const t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}
 function hitItem(item,p){if(item.locked)return false;if(item.kind==='stroke'){const ps=item.points,rad=Math.max(10,item.width*(item.tool==='highlighter'?3:1.8));if(ps.length===1)return Math.hypot(p.x-ps[0].x,p.y-ps[0].y)<rad;for(let i=1;i<ps.length;i++)if(pointSegmentDistance(p,ps[i-1],ps[i])<rad)return true;return false}const b=getBounds(item);if(item.kind==='shape'&&['line','arrow'].includes(item.shape))return pointSegmentDistance(p,{x:item.x,y:item.y},{x:item.x2,y:item.y2})<13;return p.x>=b.x-8&&p.y>=b.y-8&&p.x<=b.x+b.w+8&&p.y<=b.y+b.h+8}
 function pointInPoly(p,vs){let inside=false;for(let i=0,j=vs.length-1;i<vs.length;j=i++){const a=vs[i],b=vs[j];if(((a.y>p.y)!==(b.y>p.y))&&(p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x))inside=!inside}return inside}
@@ -105,19 +138,20 @@ function bindDrawing(canvas,index){
     if(state.tool==='lasso'){const selectedImage=page.items.find(item=>item.kind==='image'&&state.selection.includes(item.id));
       if(selectedImage){const b=getBounds(selectedImage);if(Math.hypot(p.x-(b.x+b.w+4),p.y-(b.y+b.h+4))<23){saveHistory();state.gesture={mode:'resize',index,id:selectedImage.id,start:p,w:selectedImage.w,h:selectedImage.h,changed:false};return}}
       if(state.selection.length&&hitSelected(page,p)){saveHistory();state.gesture={mode:'move',index,last:p,changed:false};return}state.selection=[];state.gesture={mode:'lasso',index,points:[p]};drawPage(index);return}
-    saveHistory();if(state.tool==='shape'){state.gesture={mode:'shape',index,start:p,end:p}}else{state.gesture={mode:'draw',index,points:[p],stroke:{id:uid(),kind:'stroke',tool:state.tool,color:state.color,width:state.width,points:[]}}}drawPage(index);
+    saveHistory();if(state.tool==='shape'){state.gesture={mode:'shape',index,start:p,end:p}}else{const g={mode:'draw',index,pointerId:e.pointerId,points:[],visible:[],delay:state.inkDelay,raf:0,stroke:{id:uid(),kind:'stroke',inkVersion:2,tool:state.tool,color:state.color,width:state.width,points:[]}};state.gesture=g;sampleInk(g,e,canvas);animateInk(g,index)}drawPage(index);
   });
-  canvas.addEventListener('pointermove',e=>{const g=state.gesture;if(!g||g.index!==index)return;const p=loc(e,canvas);if(g.mode==='pan'){area.scrollLeft=g.scrollLeft-(e.clientX-g.startX);area.scrollTop=g.scrollTop-(e.clientY-g.startY);return}
-    if(g.mode==='draw'||g.mode==='lasso'){const pts=g.points,last=pts[pts.length-1];if(Math.hypot(p.x-last.x,p.y-last.y)>.8)pts.push(p)}
+  canvas.addEventListener('pointermove',e=>{const g=state.gesture;if(!g||g.index!==index||(g.pointerId!=null&&g.pointerId!==e.pointerId))return;const p=loc(e,canvas);if(g.mode==='pan'){area.scrollLeft=g.scrollLeft-(e.clientX-g.startX);area.scrollTop=g.scrollTop-(e.clientY-g.startY);return}
+    if(g.mode==='draw'){sampleInk(g,e,canvas);animateInk(g,index)}
+    else if(g.mode==='lasso'){const pts=g.points,last=pts[pts.length-1];if(Math.hypot(p.x-last.x,p.y-last.y)>.8)pts.push(p)}
     else if(g.mode==='shape')g.end=p;
     else if(g.mode==='erase'){if(eraseAt(curPage(index),p))g.changed=true}
     else if(g.mode==='resize'){const img=curPage(index).items.find(i=>i.id===g.id);if(img){const w=clamp(g.w+p.x-g.start.x,35,PAGE_W-img.x),ratio=g.h/g.w;img.w=w;img.h=clamp(w*ratio,30,PAGE_H-img.y);g.changed=true}}
     else if(g.mode==='move'){const dx=p.x-g.last.x,dy=p.y-g.last.y;curPage(index).items.filter(item=>state.selection.includes(item.id)).forEach(item=>moveItem(item,dx,dy));g.last=p;g.changed=true}
-    drawPage(index);
+    if(g.mode!=='draw')drawPage(index);
     if(g.mode==='draw'&&e.clientY>area.getBoundingClientRect().bottom-48&&area.scrollTop+area.clientHeight<area.scrollHeight-10)area.scrollTop+=4;
   });
-  function finish(e){const g=state.gesture;if(!g||g.index!==index)return;state.gesture=null;canvas.style.cursor='';const page=curPage(index);if(!page)return;
-    if(g.mode==='draw'){if(g.points.length)page.items.push({...g.stroke,points:g.points});markChanged()}
+  function finish(e){const g=state.gesture;if(!g||g.index!==index||(g.pointerId!=null&&g.pointerId!==e.pointerId))return;if(g.raf)cancelAnimationFrame(g.raf);state.gesture=null;canvas.style.cursor='';const page=curPage(index);if(!page)return;
+    if(g.mode==='draw'){if(e.type==='pointerup')sampleInk(g,e,canvas);if(g.points.length){page.items.push({...g.stroke,points:g.points.map(({t,...point})=>point)});markChanged()}}
     else if(g.mode==='shape'){if(Math.hypot(g.end.x-g.start.x,g.end.y-g.start.y)>4){page.items.push({id:uid(),kind:'shape',shape:state.shape,color:state.color,width:state.width,x:g.start.x,y:g.start.y,x2:g.end.x,y2:g.end.y});markChanged()}}
     else if(g.mode==='lasso'){const selected=page.items.filter(item=>{if(item.locked)return false;if(item.kind==='stroke')return item.points.some(p=>pointInPoly(p,g.points));const b=getBounds(item);return pointInPoly({x:b.x+b.w/2,y:b.y+b.h/2},g.points)});state.selection=selected.map(x=>x.id);if(selected.length)toast(`${selected.length} item${selected.length===1?'':'s'} selected · drag to move`)}
     else if((g.mode==='erase'||g.mode==='move'||g.mode==='resize')&&g.changed)markChanged();
@@ -140,6 +174,7 @@ function moreMenu(anchor){showPopup(anchor,[
  {label:'Insert image',icon:'image',fn:()=>$('image-import').click()},
  {label:'Import PDF / DOCX',icon:'file',fn:()=>$('file-import').click()},
  {label:'Paste image / text · Ctrl+V',icon:'image',fn:()=>toast('Copy an image or text, then press Ctrl+V over the page')},
+ {label:I?.getLanguage()==='vi'?(state.inkDelay?'Làm mượt nét bút: Bật (24 ms)':'Làm mượt nét bút: Tắt'):(state.inkDelay?'Stroke stabilization: On (24 ms)':'Stroke stabilization: Off'),icon:'settings',selected:!!state.inkDelay,fn:()=>{state.inkDelay=state.inkDelay?0:Ink.STABILIZATION_MS;try{localStorage.setItem('freeink-ink-stabilization',state.inkDelay?'on':'off')}catch{}toast(I?.getLanguage()==='vi'?(state.inkDelay?'Đã bật làm mượt nét bút':'Đã tắt làm mượt nét bút'):(state.inkDelay?'Stroke stabilization on':'Stroke stabilization off'))}},
  {label:'Duplicate selected items',icon:'copy',fn:duplicateSelection},
  {separator:true},
  {label:'Duplicate current page',icon:'copy',fn:()=>{saveHistory();const index=visiblePage(),page=deep(curPage(index));page.id=uid();current().pages.splice(index+1,0,page);refreshDocument();markChanged();toast('Page duplicated')}},
@@ -156,6 +191,7 @@ function showManualGuide(){
  const content=vi?`<div class="guide-content">
  <h3>1. Bắt đầu</h3><p>Nhấn <b>+</b> để tạo ghi chú, đặt tên và chọn giấy kẻ dòng, trắng, ô vuông, chấm hoặc khuông nhạc. Chọn ghi chú trong thư viện bên trái.</p>
  <h3>2. Viết và chỉnh sửa</h3><p>Dùng chuột, màn hình cảm ứng hoặc bút cảm ứng. Chọn Bút mực, Bút chì, Bút đánh dấu, Tẩy, Khoanh chọn, Hình dạng hay Văn bản trên thanh công cụ. Đổi màu và độ dày nét.</p>
+ <p><b>Nét bút ổn định:</b> Khi viết, nét mực theo sau đầu bút khoảng 24 ms để giảm rung; khi nhấc bút, nét hoàn thiện ngay. Bút hỗ trợ áp lực và độ nghiêng nếu phần cứng cung cấp. Có thể bật/tắt tại <b>Tùy chọn ghi chú → Làm mượt nét bút</b>.</p>
  <h3>3. Chèn tài liệu</h3><p>Nhấn <b>Nhập tệp</b> để thêm ảnh, PDF, DOCX hoặc tệp <b>.freeink</b>. Dán ảnh chụp màn hình bằng <kbd>Ctrl/⌘ + V</kbd>. Dùng công cụ Khoanh chọn để di chuyển và thay đổi kích thước ảnh. PDF và DOCX cần bản desktop có đủ thư viện; nội dung Word có thể mất định dạng phức tạp.</p>
  <h3>4. Lưu và xuất</h3><p>Ghi chú được tự động lưu trên <b>thiết bị hiện tại</b>, không đồng bộ đám mây. Nhấn <b>Xuất tệp → PDF vector</b> để giữ nét viết sắc nét ở mọi mức phóng to. Ảnh và trang PDF nhập vào vẫn phụ thuộc độ phân giải gốc. Xuất <b>.freeink</b> thường xuyên để sao lưu và chuyển máy.</p>
  <h3>5. Trang, phóng to và cập nhật</h3><p>Nhấn <b>Thêm trang</b>, thay mẫu giấy, dùng nút +/− để phóng to. Bản cài đặt EXE Windows có nút Cập nhật từ GitHub Releases; bản MSI được nâng cấp bằng Windows Installer. Bản Mac dùng gói DMG; chức năng tự cập nhật cần ứng dụng đã ký và công chứng.</p>
@@ -164,6 +200,7 @@ function showManualGuide(){
  </div>`:`<div class="guide-content">
  <h3>1. Get started</h3><p>Click <b>+</b> to create a notebook, name it, and choose lined, blank, grid, dotted, or music paper. Select saved notebooks from the gallery on the left.</p>
  <h3>2. Draw and edit</h3><p>Write with a mouse, touchscreen, or pen. Choose Pen, Pencil, Highlighter, Eraser, Lasso, Shape, or Text in the toolbar. Adjust color and line thickness.</p>
+ <p><b>Stabilized ink:</b> While writing, the visible ink trails the stylus by about 24 ms to reduce jitter. It catches up on pen-up. Pressure and tilt affect line width on compatible hardware. Turn it on/off in <b>Note options → Stroke stabilization</b>.</p>
  <h3>3. Import documents</h3><p>Use <b>Import</b> for images, PDF, DOCX, and <b>.freeink</b> files. Paste screenshots with <kbd>Ctrl/⌘ + V</kbd>. Use Lasso to move or resize images. PDF/DOCX import requires the installed desktop dependencies; complex Word layouts may change.</p>
  <h3>4. Save and export</h3><p>Notes auto-save <b>on this device</b>; there is no cloud sync. Choose <b>Export → Vector PDF</b> to keep handwriting and shapes sharp at any zoom. Imported images and PDF backgrounds have their original pixel resolution. Export <b>.freeink</b> backups regularly for safekeeping and transferring devices.</p>
  <h3>5. Pages, zoom, and updates</h3><p>Click <b>Add page</b>, change paper templates, or use +/− to zoom. The Windows NSIS EXE checks for GitHub updates; MSI upgrades use Windows Installer. On macOS, DMG builds require developer signing and notarization for smooth distribution and self-updating.</p>

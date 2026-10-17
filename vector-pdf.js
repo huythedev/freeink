@@ -8,6 +8,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const PW = 816, PH = 1056, A = new TextEncoder();
+  const Ink = typeof module !== 'undefined' && module.exports ? require('./ink-engine.js') : globalThis.FreeInkInk;
   const fmt = x => (Number.isFinite(x) ? Number(x.toFixed(3)).toString() : '0');
   const rgb = hex => {
     const h = /^#[0-9a-f]{6}$/i.test(hex || '') ? hex.slice(1) : '24364c';
@@ -47,7 +48,28 @@
     }
     return s+`${fmt(p[p.length-1].x)} ${fmt(p[p.length-1].y)} l S\n`;
   }
+  function filledCircle(p,r){
+    const k=.5522847498;
+    let s=`${fmt(p.x+r)} ${fmt(p.y)} m\n`;
+    for(const c of [[p.x+r,p.y+k*r,p.x+k*r,p.y+r,p.x,p.y+r],[p.x-k*r,p.y+r,p.x-r,p.y+k*r,p.x-r,p.y],[p.x-r,p.y-k*r,p.x-k*r,p.y-r,p.x,p.y-r],[p.x+k*r,p.y-r,p.x+r,p.y-k*r,p.x+r,p.y]])s+=c.map(fmt).join(' ')+' c\n';
+    return s+'h f\n';
+  }
+  function pressureStroke(item){
+    if(!Ink)throw Error('Ink engine missing');
+    const o=Ink.outline(item.points,item);
+    if(!o.points.length)return '';
+    let s=`q /${item.tool==='highlighter'?'GS28':item.tool==='pencil'?'GS72':'GS100'} gs ${rgb(item.color)} rg\n`;
+    if(o.points.length>1){
+      s+=`${fmt(o.left[0].x)} ${fmt(o.left[0].y)} m\n`;
+      for(let i=1;i<o.left.length;i++)s+=`${fmt(o.left[i].x)} ${fmt(o.left[i].y)} l\n`;
+      for(let i=o.right.length-1;i>=0;i--)s+=`${fmt(o.right[i].x)} ${fmt(o.right[i].y)} l\n`;
+      s+='h f\n';
+    }
+    for(const i of o.points.length===1?[0]:[0,o.points.length-1])s+=filledCircle(o.points[i],o.radii[i]);
+    return s+'Q\n';
+  }
   function stroke(item){
+    if(item.inkVersion===2)return pressureStroke(item);
     const pts=item.points||[];if(!pts.length)return '';
     const width=(item.tool==='highlighter' ? 5 : 1)*(item.width||3)*(.75+.5*(pts[0].p??.5));
     let s=`q /${item.tool==='highlighter'?'GS28':item.tool==='pencil'?'GS72':'GS100'} gs ${rgb(item.color)} RG ${rgb(item.color)} rg ${fmt(width)} w 1 J 1 j\n`;

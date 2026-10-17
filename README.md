@@ -33,7 +33,7 @@ Unsigned GitHub installers may show Microsoft's SmartScreen **Unrecognized app**
 
 ## Main features
 
-- Pen, pencil, pressure-aware strokes, highlighter, whole-object eraser and lasso for moving and duplicating strokes.
+- Pen and pencil with **24 ms trailing-ink stabilization** (toggle in Note options), full coalesced pointer input, stylus **pressure and tilt** when hardware/driver supports them, highlighter, whole-object eraser and lasso for moving and duplicating strokes. New strokes are variable-width vectors in both the editor and exported PDF; older notes remain readable.
 - Line, rectangle, ellipse, triangle and arrow shapes; typed editable text blocks.
 - Clipboard paste (`Ctrl+V`) of PNG/JPEG/etc. screenshots and normal text while focused on the editor; drag and drop images onto pages; import image files.
 - Move and resize inserted images with Lasso: select an image and drag its bottom-right selection handle.

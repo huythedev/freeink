@@ -13,6 +13,8 @@
 
 ### 2. Viết tay và chỉnh sửa
 
+- **Làm mượt khi đang viết:** nét bút hiển thị theo sau ngòi bút khoảng 24 ms để giảm rung. Đầu bút vừa nhấc lên thì nét hoàn tất ngay. Vào **Tùy chọn ghi chú → Làm mượt nét bút** để bật/tắt. Bút hỗ trợ áp lực và độ nghiêng nếu bút/driver và trình duyệt cung cấp dữ liệu.
+
 - Dùng chuột, màn hình cảm ứng hoặc bút cảm ứng; chọn bút mực, bút chì, bút đánh dấu, tẩy, khoanh chọn, hình dạng, văn bản hoặc bàn tay.
 - Dùng bảng màu và thanh độ dày nét bút.
 - Khoanh chọn (Lasso) cho phép di chuyển, sao chép đối tượng và thay đổi kích thước ảnh.
@@ -58,6 +60,8 @@
 Click **+** or `Ctrl/⌘ + N` to create a note. Choose paper templates and use the gallery to find, rename, duplicate, or delete notes. **Add page** extends the document. Notes auto-save on this device; there is no cloud synchronization.
 
 ### 2. Handwriting tools
+
+- **Live stroke stabilization:** ink trails stylus input by about 24 ms to reduce jitter while writing, then immediately catches up on pen-up. Toggle under **Note options → Stroke stabilization**. Compatible pens supply variable pressure and tilt to shape the stroke.
 
 Use your mouse, touch, or stylus with Pen, Pencil, Highlighter, Eraser, Lasso, Shape, or Text. Adjust ink color and stroke thickness. Use Lasso to select, move, duplicate, or resize inserted images. The visual ruler does not currently snap ink.
 
