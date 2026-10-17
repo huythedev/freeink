@@ -98,7 +98,7 @@ function loc(e,canvas){const r=canvas.getBoundingClientRect();return {
   ty:e.pointerType==='pen'?clamp(e.tiltY||0,-90,90):0,
   twist:e.pointerType==='pen'?(e.twist||0):0
 }}
-// Capture coalesced pen samples at the device input rate; only presentation trails.
+// Capture coalesced pen samples at full input rate; only presentation trails.
 function sampleInk(g,e,canvas){
   let samples=[];
   try{samples=typeof e.getCoalescedEvents==='function'?e.getCoalescedEvents():[]}catch{}
@@ -117,8 +117,13 @@ function animateInk(g,index){
     g.raf=0;
     if(state.gesture!==g)return;
     const visible=Ink.visibleSamples(g.points,performance.now(),g.delay);
-    if(visible.length!==g.visible.length){g.visible=visible;drawPage(index)}
-    if(visible.length<g.points.length)animateInk(g,index);
+    // A delayed interpolated tip may move without changing array length.
+    const tip=visible[visible.length-1],previous=g.visible[g.visible.length-1];
+    if(visible.length!==g.visible.length || (!tip)!==(!previous) ||
+       (tip&&previous&&(tip.x!==previous.x||tip.y!==previous.y||tip.p!==previous.p||tip.tx!==previous.tx||tip.ty!==previous.ty))){
+      g.visible=visible;drawPage(index);
+    }
+    if(g.delay&&g.points.length&&g.points[g.points.length-1].t>performance.now()-g.delay)animateInk(g,index);
   });
 }
 function pointSegmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;const t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}

@@ -48,25 +48,26 @@
     }
     return s+`${fmt(p[p.length-1].x)} ${fmt(p[p.length-1].y)} l S\n`;
   }
-  function filledCircle(p,r){
+  function filledCircle(p,r,fill=true){
     const k=.5522847498;
     let s=`${fmt(p.x+r)} ${fmt(p.y)} m\n`;
     for(const c of [[p.x+r,p.y+k*r,p.x+k*r,p.y+r,p.x,p.y+r],[p.x-k*r,p.y+r,p.x-r,p.y+k*r,p.x-r,p.y],[p.x-r,p.y-k*r,p.x-k*r,p.y-r,p.x,p.y-r],[p.x+k*r,p.y-r,p.x+r,p.y-k*r,p.x+r,p.y]])s+=c.map(fmt).join(' ')+' c\n';
-    return s+'h f\n';
+    return s+(fill?'h f\n':'h\n');
   }
   function pressureStroke(item){
     if(!Ink)throw Error('Ink engine missing');
     const o=Ink.outline(item.points,item);
     if(!o.points.length)return '';
     let s=`q /${item.tool==='highlighter'?'GS28':item.tool==='pencil'?'GS72':'GS100'} gs ${rgb(item.color)} rg\n`;
-    if(o.points.length>1){
-      s+=`${fmt(o.left[0].x)} ${fmt(o.left[0].y)} m\n`;
-      for(let i=1;i<o.left.length;i++)s+=`${fmt(o.left[i].x)} ${fmt(o.left[i].y)} l\n`;
-      for(let i=o.right.length-1;i>=0;i--)s+=`${fmt(o.right[i].x)} ${fmt(o.right[i].y)} l\n`;
-      s+='h f\n';
+    // Fill every segment and round joint in one vector operation. No
+    // winding holes on reversals and no opacity stripes on marker strokes.
+    for(const quad of o.segments){
+      s+=`${fmt(quad[0].x)} ${fmt(quad[0].y)} m\n`;
+      for(let i=1;i<4;i++)s+=`${fmt(quad[i].x)} ${fmt(quad[i].y)} l\n`;
+      s+='h\n';
     }
-    for(const i of o.points.length===1?[0]:[0,o.points.length-1])s+=filledCircle(o.points[i],o.radii[i]);
-    return s+'Q\n';
+    for(let i=0;i<o.points.length;i++)s+=filledCircle(o.points[i],o.radii[i],false);
+    return s+'f Q\n';
   }
   function stroke(item){
     if(item.inkVersion===2)return pressureStroke(item);
