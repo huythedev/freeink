@@ -12,6 +12,8 @@ FreeInk is an independent Scrble Ink–inspired notebook editor. It is not affil
 
 **Installable desktop:** On Windows, run `npm run dist:win` after `npm install` to build an NSIS `.exe` setup in `dist/`. The installed NSIS app is the intended target for **GitHub Releases automatic updates**. A separate `npm run dist:portable` creates a portable build, which DOES NOT support reliable in-place automatic updates.
 
+**Windows installer without publishing:** The [Windows installer test-build workflow](https://github.com/huythedev/freeink/actions/workflows/windows-build.yml) runs on pushes to `main` (and can be started manually under Actions). When successful, download the workflow artifact `FreeInk-Windows-test-installer`. The unsigned installer is for testing, **not** a published GitHub Release; public auto-updates require the tagged [Windows release workflow](.github/workflows/windows-release.yml).
+
 ## Main features
 
 - Pen, pencil, pressure-aware strokes, highlighter, whole-object eraser and lasso for moving and duplicating strokes.
