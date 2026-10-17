@@ -53,3 +53,14 @@ Files are written to `dist/`; the local command **does not publish** anything. P
 ## Mac releases and Windows trust warnings
 
 See [CODE-SIGNING.md](CODE-SIGNING.md) for a step-by-step SmartScreen/code signing and Apple Developer ID/notarization setup. On every push, GitHub also builds an unsigned universal Mac test artifact. To publish signed Mac binaries, first publish a **new** Windows version, then run **Publish signed macOS release** manually with that exact version; its DMG/ZIP are attached to the existing release. The macOS workflow does not publish unsigned builds.
+
+## Free macOS testing release (DMG and ZIP)
+
+An unsigned macOS DMG is free to build and distribute for testing. It is **not** equivalent to trusted Developer ID signing and notarization. For the optional unsigned channel:
+
+1. Publish the matching Windows version first. **Wait until its workflow succeeds and the GitHub Release and tag exist.** Starting both release workflows concurrently caused the Mac checkout for `v0.2.1` to fail because the tag had not been created yet.
+2. Open [Actions → Publish unsigned macOS test DMG](https://github.com/huythedev/freeink/actions/workflows/macos-unsigned-release.yml).
+3. Click **Run workflow** on `main`, enter the *already published* version (e.g. `0.2.1`), check the acknowledgment, and run it.
+4. After success, the existing release contains an unsigned Universal `.dmg`, `.zip`, SHA256 checksums and a warning notice, alongside the Windows EXE/MSI.
+
+Unsigned Mac builds can be blocked by Gatekeeper on first launch; see [CODE-SIGNING.md](CODE-SIGNING.md). They cannot self-update using Electron's signed Mac updater. The existing [Publish signed macOS release](https://github.com/huythedev/freeink/actions/workflows/macos-release.yml) is intended for a future Developer ID + notarization configuration. Avoid publishing both signed and unsigned packages with identical asset names on the same release.
