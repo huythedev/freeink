@@ -1,7 +1,7 @@
 {
   "name": "freeink-windows-prototype",
   "productName": "FreeInk",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "description": "Offline-first multilingual handwriting app for Windows and macOS, with vector PDF and GitHub updates",
   "license": "MIT",
@@ -79,4 +79,3 @@
     }
   }
 }
-
