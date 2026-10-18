@@ -7,6 +7,7 @@ function makeServer(){return http.createServer((req,res)=>{
   try{
     if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{Allow:'GET, HEAD'});res.end();return}
     const raw=decodeURIComponent((req.url||'/').split('?')[0]),name=raw==='/'?'index.html':raw.replace(/^\/+/, '');
+    if(name.split('/').some(part=>part==='..'||part==='.')){res.writeHead(404);res.end('Not found');return}
     const allowed=['index.html','app.js','i18n.js','ink-engine.js','runtime.js','storage.js','file-worker.js','style.css','vector-pdf.js'];
     if(!allowed.includes(name)&&!/^node_modules\/pdfjs-dist\/(build|standard_fonts|cmaps|wasm)\/[a-zA-Z0-9_.\/-]+\.(mjs|js|wasm|bcmap|pfb|ttf)$/.test(name)&&name!=='node_modules/mammoth/mammoth.browser.js'&&!/^assets\/[a-zA-Z0-9_.\/-]+\.(png|svg|ico)$/.test(name)){res.writeHead(404);res.end('Not found');return}
     const file=path.resolve(root,name);if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return}

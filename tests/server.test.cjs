@@ -9,6 +9,7 @@ const {makeServer}=require('../server');
   assert.equal((await fetch(base+'/app.js',{method:'POST'})).status,405);
   assert.equal((await fetch(base+'/%E0%A4%A')).status,400);
   assert.equal((await fetch(base+'/electron.js')).status,404,'native process source must not be exposed');
+  const traversal=await new Promise((resolve,reject)=>{http.get({hostname:'127.0.0.1',port:server.address().port,path:'/node_modules/pdfjs-dist/build/%2e%2e/%2e%2e/%2e%2e/electron.js'},res=>{res.resume();resolve(res.statusCode)}).on('error',reject)});assert.equal(traversal,404,'asset routes must not bypass the whitelist using encoded traversal');
   await new Promise(resolve=>{const req=http.get(base+'/app.js',res=>{res.destroy();resolve()});req.on('error',resolve)});
   assert.equal((await fetch(base+'/')).status,200,'client disconnects must not crash the local server');
  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve))}
