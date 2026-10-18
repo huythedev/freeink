@@ -11,11 +11,13 @@ context.createImageBitmap=async(blob,options={})=>{const image=await loadImage(B
 context.self=context;context.postMessage=value=>parentPort.postMessage(value);
 context.importScripts=(...files)=>{for(const file of files)vm.runInContext(fs.readFileSync(path.resolve(root,file),'utf8'),context,{filename:file})};
 context.importScripts('./file-worker.js');
-parentPort.on('message',data=>context.onmessage({data}));
+parentPort.on('message',async data=>{await context.onmessage({data});parentPort.close()});
 `;
 function run(kind,payload){return new Promise((resolve,reject)=>{
- const worker=new Worker(bootstrap,{eval:true});const progress=[];
- worker.on('message',async data=>{if(data.type==='progress'){progress.push(data);return}await worker.terminate();data.type==='result'?resolve({result:data.result,progress}):reject(Error(data.message))});worker.on('error',reject);worker.postMessage({kind,payload});
+ const worker=new Worker(bootstrap,{eval:true}),progress=[];let response;
+ worker.on('message',data=>{if(data.type==='progress')progress.push(data);else response=data});
+ worker.on('error',reject);worker.on('exit',code=>{if(code!==0)reject(Error('Worker exited with '+code));else if(response?.type==='result')resolve({result:response.result,progress});else reject(Error(response?.message||'Worker returned no result'))});
+ worker.postMessage({kind,payload});
 })}
 (async()=>{
  const note={title:'Worker test',pages:[{template:'blank',items:[{kind:'stroke',tool:'pen',inkVersion:2,color:'#000000',width:5,points:[{x:5,y:10},{x:20,y:10}],erasures:[{width:2,points:[{x:10,y:10}]}]}]}]};
