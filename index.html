@@ -64,6 +64,10 @@
       </div>
     </header>
 
+    <div id="operation-status" class="operation-status" role="status" aria-live="polite" hidden>
+      <span id="operation-label"></span><progress id="operation-progress" max="1"></progress>
+      <button id="operation-cancel" class="text-button" type="button" data-i18n="Cancel">Cancel</button>
+    </div>
     <div class="workspace">
       <aside id="sidebar" class="sidebar" aria-label="Note gallery">
         <div class="sidebar-heading"><div><div class="eyebrow" data-i18n="YOUR WORKSPACE">YOUR WORKSPACE</div><h2 data-i18n="My notes">My notes</h2></div><button class="icon-button" id="sidebar-close" title="Close gallery" data-i18n-title="Close gallery"><svg><use href="#i-close"/></svg></button></div>
@@ -81,6 +85,7 @@
             <button data-tool="pencil" class="tool-button" title="Pencil (K)" data-i18n-title="Pencil (K)"><svg><use href="#i-pencil"/></svg></button>
             <button data-tool="highlighter" class="tool-button" title="Highlighter (H)" data-i18n-title="Highlighter (H)"><svg><use href="#i-highlighter"/></svg></button>
             <button data-tool="eraser" class="tool-button" title="Erase object (E)" data-i18n-title="Erase object (E)"><svg><use href="#i-eraser"/></svg></button>
+        <button data-tool="pixel-eraser" class="tool-button" title="Pixel eraser (Shift+E)" aria-label="Pixel eraser" data-i18n-title="Pixel eraser (Shift+E)" data-i18n-aria="Pixel eraser"><svg><use href="#i-eraser"/><circle cx="18" cy="18" r="3" fill="currentColor" stroke="none"/></svg></button>
             <span class="ribbon-divider"></span>
             <button data-tool="lasso" class="tool-button" title="Lasso select (L)" data-i18n-title="Lasso select (L)"><svg><use href="#i-lasso"/></svg></button>
             <button data-tool="shape" class="tool-button" title="Shapes (S)" data-i18n-title="Shapes (S)"><svg><use href="#i-shape"/></svg></button>
@@ -113,6 +118,8 @@
   <input type="file" id="file-import" accept=".pdf,.docx,.json,.freeink,.png,.jpg,.jpeg,.webp,.gif" hidden/>
   <input type="file" id="image-import" accept="image/*" hidden/>
   <script src="i18n.js" defer></script>
+  <script src="runtime.js" defer></script>
+  <script src="storage.js" defer></script>
   <script src="ink-engine.js" defer></script>
   <script src="vector-pdf.js" defer></script>
   <script src="app.js" defer></script>

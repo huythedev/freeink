@@ -15,7 +15,8 @@ let clock=0,nextFrame=0,changes=0;
 const state={tool:'pen',zoom:1,inkDelay:24,width:3,color:'#000000',gesture:null,selection:[]};
 const canvas={style:{},getBoundingClientRect:()=>({left:0,top:0}),setPointerCapture(){},releasePointerCapture(){},
   addEventListener(type,handler){events.set(type,handler)}};
-const context={Ink,state,PAGE_W:816,PAGE_H:1056,performance:{now:()=>clock},
+const Runtime=require('../runtime');
+const context={Ink,Runtime,maskBounds:Runtime.strokeBounds,state,PAGE_W:816,PAGE_H:1056,performance:{now:()=>clock},
   clamp:(n,a,b)=>Math.max(a,Math.min(b,n)),uid:()=>String(nextFrame++),
   document:{querySelector:()=>null},curPage:()=>page,
   area:{scrollTop:0,scrollLeft:0,scrollHeight:1056,clientHeight:1056,getBoundingClientRect:()=>({bottom:1000})},
@@ -60,3 +61,14 @@ send('pointerdown',{pointerId:4});send('pointercancel',{pointerId:4});
 assert.equal(page.items.length,3,'pointer cancellation must preserve the partial stroke');
 assert.equal(changes,3);
 console.log('Slow coalesced input, pointer isolation, capture loss and pen-lift tests pass.');
+
+state.tool='pixel-eraser';state.eraserWidth=6;
+send('pointerdown',{clientX:101});send('pointermove',{clientX:102});send('pointerup',{clientX:103});
+assert.equal(page.items.length,3,'pixel erasing must keep the original editable objects');
+assert(page.items[0].erasures?.length,'pixel erasing must persist a partial mask on existing ink');
+assert.equal(page.items[0].erasures[0].width,6);
+assert.equal(changes,4);
+page.items.push({kind:'stroke',width:3,points:[{x:500,y:500}]});
+state.tool='eraser';send('pointerdown',{clientX:500,clientY:500});assert(state.gesture.finish,'all editing gestures need an interruption/close handler');
+state.gesture.finish();assert.equal(state.gesture,null);assert.equal(changes,5,'interrupted object erasing must queue a save');
+console.log('Pixel eraser input and interrupted object-edit persistence pass.');

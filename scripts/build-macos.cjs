@@ -25,13 +25,11 @@ const signed = signingCert && notarizeCreds;
   await build({
     targets:Platform.MAC.createTarget(['dmg','zip'],Arch.universal),
     config:{
-      ...pkg.build,
       directories:{...pkg.build.directories,output:dir},
       publish,
       extraMetadata:{freeinkMacSigned:signed},
       mac:{category:'public.app-category.productivity',icon:'assets/app.icns',hardenedRuntime:true,
         gatekeeperAssess:false,notarize:signed,
-        target:[{target:'dmg',arch:['universal']},{target:'zip',arch:['universal']}],
         artifactName:'FreeInk-${version}-mac-${arch}.${ext}'},
     },
     publish:'never',

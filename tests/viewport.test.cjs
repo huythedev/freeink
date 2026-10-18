@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../app.js'),'utf8');
+const note={pages:Array.from({length:200},()=>({template:'ruled',items:[]}))},state={zoom:1,selection:[],gesture:null},canvases=[],draws=[];
+const area={scrollTop:0,clientHeight:800},pageEl={replaceChildren(fragment){this.children=fragment.children}};
+const document={createDocumentFragment:()=>({children:[],appendChild(child){this.children.push(child)}}),createElement(tag){if(tag==='canvas'){const canvas={width:1632,height:2112,setAttribute(){},remove(){this.parent.canvas=null}};canvases.push(canvas);return canvas}const sheet={prepend(canvas){canvas.parent=this;this.canvas=canvas},querySelector(){return this.canvas}};return {dataset:{},style:{},querySelector(selector){return selector==='canvas'?sheet.canvas:sheet}}}};
+const c={state,Runtime:require('../runtime'),current:()=>note,PAGE_W:816,PAGE_H:1056,pageTop:29,pageGap:26,area,pageEl,pageShells:[],activePages:new Set(),viewportFrame:0,document,getComputedStyle:()=>({paddingTop:'29px',gap:'26px'}),bindDrawing(){},drawPage:i=>draws.push(i),updateHeader(){},updateToolButtons(){},cancelAnimationFrame(){}};
+vm.createContext(c);vm.runInContext(source.slice(source.indexOf('function pageRange('),source.indexOf('function setZoom(')),c);
+c.refreshDocument();assert.equal(pageEl.children.length,200);assert(canvases.length<=4);assert(c.activePages.size<=4);
+const old=[...canvases];area.scrollTop=1082*100;c.renderVisiblePages();assert(c.activePages.size<=4);assert(old.every(canvas=>canvas.width===1),'offscreen page backing stores must be released');
+state.gesture={index:0};c.renderVisiblePages();assert(c.activePages.has(0),'active pointer capture must stay mounted while scrolling');assert(c.activePages.size<=5);
+state.gesture=null;c.renderVisiblePages();assert(!c.activePages.has(0));
+assert.equal(note.pages.length,200,'scrolling must never add blank pages or dirty an imported notebook');
+console.log('Viewport: actual renderer mounts at most four canvases for 200 pages, releases old buffers and preserves pointer capture.');

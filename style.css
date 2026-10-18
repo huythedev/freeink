@@ -25,3 +25,9 @@
 .guide-button{white-space:nowrap}.guide-content{max-height:min(55vh,500px);overflow:auto;line-height:1.55;color:#3f5067;font-size:12px}.guide-content h3{color:#274d7c;font-size:13px;margin:12px 0 5px}.guide-content p{margin:0 0 9px;color:#556b83;font-size:12px}.guide-content ul{padding-left:18px;margin:3px 0 12px}.guide-content li{margin:4px 0}.guide-content kbd{font-size:11px;background:#edf3fa;padding:2px 5px;border-radius:4px}.guide-dialog{width:min(630px,100%)}
 @media(max-width:900px){.lang-control>span,.guide-button span{display:none}}@media(max-width:760px){.lang-control{gap:0}.lang-control select{padding:0 3px;max-width:47px}}
 
+
+/* File work remains visible and cancellable while document editing is paused. */
+.operation-status{display:flex;align-items:center;gap:12px;padding:9px 18px;background:#eaf3ff;border-bottom:1px solid #c8ddf8;color:#274d7c;flex:0 0 auto;font-size:12px}
+.operation-status[hidden]{display:none}.operation-status>span{flex:1;overflow-wrap:anywhere}.operation-status progress{width:min(25vw,220px);height:8px}.operation-status button{flex:none;min-height:30px}
+.sheet[data-loading]::after{content:attr(data-loading);position:absolute;inset:0;display:grid;place-content:center;background:#ffffffb8;color:#36506e;font:14px "Segoe UI",sans-serif;pointer-events:none}
+.sheet[data-tool="pixel-eraser"]{cursor:crosshair}

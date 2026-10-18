@@ -5,11 +5,12 @@
  * source is downloaded and eval'ed at runtime.
  */
 const {app,ipcMain} = require('electron');
-function setupUpdater(window){
-  let stage='idle', version='', updater=null;
+function setupUpdater(window,{beforeInstall=()=>{},trusted=event=>event.sender===window.webContents}={}){
+  let stage='idle', version='', updater=null,detail={status:'idle',version:app.getVersion()};
+  const handle=fn=>ipcMain.handle('freeink:update-action',(event,action)=>{if(!trusted(event))throw Error('Untrusted update request');return action==='status'?detail:fn(event,action)});
   const send=(status,message,more={})=>{
-    stage=status;
-    if(!window.isDestroyed())window.webContents.send('freeink:update-status',{status,message,version:app.getVersion(),...more});
+    stage=status;detail={status,message,version:app.getVersion(),...more};
+    if(!window.isDestroyed())window.webContents.send('freeink:update-status',detail);
   };
   // Native MSI packages are upgraded by Windows Installer, not electron-updater.
   // This value is stamped into each packaged app by scripts/build-windows.cjs.
@@ -17,18 +18,18 @@ function setupUpdater(window){
   if(app.isPackaged && installerType==='msi'){
     const message='This MSI installation is updated through Windows Installer. Download the newer MSI from GitHub Releases.';
     send('msi',message);
-    ipcMain.handle('freeink:update-action',async()=>({status:'msi',message}));
+    handle(async()=>({status:'msi',message}));
     return;
   }
   if(app.isPackaged && process.platform==='darwin' && !require('./package.json').freeinkMacSigned){
     const message='This unsigned Mac test build is not eligible for automatic updates. Install a signed, notarized DMG release from GitHub.';
     send('mac-unsigned',message);
-    ipcMain.handle('freeink:update-action',async()=>({status:'mac-unsigned',message}));
+    handle(async()=>({status:'mac-unsigned',message}));
     return;
   }
   if(!app.isPackaged || !!process.env.PORTABLE_EXECUTABLE_DIR){
     send('dev','Updates work in the installed release, not dev/portable/browser mode.');
-    ipcMain.handle('freeink:update-action',async()=>({status:'dev',message:'Build and install an NSIS GitHub Release to enable updates.'}));
+    handle(async()=>({status:'dev',message:'Build and install an NSIS GitHub Release to enable updates.'}));
     return;
   }
   try{
@@ -41,12 +42,12 @@ function setupUpdater(window){
     updater.on('update-downloaded',info=>send('downloaded',`FreeInk ${info.version} is ready to install`,{newVersion:info.version}));
     updater.on('error',err=>{console.error('FreeInk update failed',err);send('error',`Update failed: ${err.message}`)});
   }catch(err){console.error('Updater setup failed',err);send('error','Updater unavailable: '+err.message)}
-  ipcMain.handle('freeink:update-action',async(_evt,action)=>{
+  handle(async(_evt,action)=>{
     if(!updater)return {status:'error',message:'No updater configured'};
     try{
       if(action==='check'){
         if(stage==='checking'||stage==='downloading')return {status:stage,message:'Update already in progress'};
-        await updater.checkForUpdates();return {status:stage};
+        send('checking','Checking GitHub Releases…');await updater.checkForUpdates();return {status:stage};
       }
       if(action==='download'&&stage==='available'){
         send('downloading','Starting download…');await updater.downloadUpdate();return {status:stage};
@@ -54,12 +55,12 @@ function setupUpdater(window){
       if(action==='install'&&stage==='downloaded'){
         send('installing','Installing update and restarting…');
         // The renderer flushes IndexedDB BEFORE it invokes this handler.
-        setImmediate(()=>updater.quitAndInstall(false,true));return {status:'installing'};
+        setImmediate(()=>{beforeInstall();updater.quitAndInstall(false,true)});return {status:'installing'};
       }
       return {status:stage,message:'Check for updates first'};
     }catch(err){send('error',`Update failed: ${err.message}`);return {status:'error',message:err.message}}
   });
   // Check quietly after app launch; never install without consent.
-  setTimeout(()=>{if(!window.isDestroyed()&&stage==='idle')updater?.checkForUpdates().catch(e=>send('error','Update check failed: '+e.message))},20000).unref?.();
+  setTimeout(()=>{if(!window.isDestroyed()&&stage==='idle'&&updater){send('checking','Checking GitHub Releases…');updater.checkForUpdates().catch(e=>send('error','Update check failed: '+e.message))}},20000).unref?.();
 }
 module.exports={setupUpdater};

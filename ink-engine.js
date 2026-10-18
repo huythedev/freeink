@@ -120,7 +120,7 @@
   }
   // Accumulate bounded paths opaquely, then apply stroke opacity once. This
   // avoids both dense compound-path winding limits and dark marker overlaps.
-  let surface=null;
+  let surface=null,surfaceUsedW=0,surfaceUsedH=0,maskSurface=null;
   function drawCanvas(ctx,raw,stroke){
     const o=outline(raw,stroke);if(!o.points.length)return;
     const m=ctx.getTransform();
@@ -145,7 +145,7 @@
     if(surface.width<w)surface.width=Math.ceil(w/64)*64;
     if(surface.height<h)surface.height=Math.ceil(h/64)*64;
     const paint=surface.getContext('2d');
-    paint.setTransform(1,0,0,1,0,0);paint.clearRect(0,0,surface.width,surface.height);
+    paint.setTransform(1,0,0,1,0,0);paint.clearRect(0,0,Math.max(surfaceUsedW,w),Math.max(surfaceUsedH,h));surfaceUsedW=w;surfaceUsedH=h;
     paint.setTransform(m.a,m.b,m.c,m.d,m.e-x,m.f-y);
     paint.globalAlpha=1;paint.fillStyle=stroke.color||'#262e3a';
     let parts=0;paint.beginPath();
@@ -165,6 +165,22 @@
     ctx.globalAlpha*=stroke.tool==='highlighter'?.28:stroke.tool==='pencil'?.72:1;
     ctx.drawImage(surface,0,0,w,h,x,y,w,h);ctx.restore();
   }
-  return {STABILIZATION_MS,PATH_BATCH_SIZE,appendSample,visibleSamples,smoothPoints,widthAt,outline,drawCanvas};
+  function eraseCanvas(ctx,points,width){
+    ctx.save();ctx.globalCompositeOperation='destination-out';ctx.globalAlpha=1;
+    drawCanvas(ctx,points.map(p=>({x:p.x,y:p.y,p:.5})),{tool:'pen',width,color:'#000000'});ctx.restore();
+  }
+  function drawMasked(ctx,masks,draw,bounds){
+    const m=ctx.getTransform(),corners=[[bounds.x,bounds.y],[bounds.x+bounds.w,bounds.y],[bounds.x,bounds.y+bounds.h],[bounds.x+bounds.w,bounds.y+bounds.h]].map(([x,y])=>({x:m.a*x+m.c*y+m.e,y:m.b*x+m.d*y+m.f}));
+    const x=Math.max(0,Math.floor(Math.min(...corners.map(p=>p.x)))-2),y=Math.max(0,Math.floor(Math.min(...corners.map(p=>p.y)))-2);
+    const w=Math.min(ctx.canvas.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+2)-x,h=Math.min(ctx.canvas.height,Math.ceil(Math.max(...corners.map(p=>p.y)))+2)-y;
+    if(w<=0||h<=0)return;
+    if(!maskSurface){if(typeof OffscreenCanvas!=='undefined')maskSurface=new OffscreenCanvas(w,h);else maskSurface=ctx.canvas.ownerDocument.createElement('canvas')}
+    if(maskSurface.width<w)maskSurface.width=Math.ceil(w/64)*64;if(maskSurface.height<h)maskSurface.height=Math.ceil(h/64)*64;
+    const paint=maskSurface.getContext('2d');paint.setTransform(1,0,0,1,0,0);paint.clearRect(0,0,maskSurface.width,maskSurface.height);paint.setTransform(m.a,m.b,m.c,m.d,m.e-x,m.f-y);
+    draw(paint);for(const mask of masks)eraseCanvas(paint,mask.points,mask.width);
+    ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(maskSurface,0,0,w,h,x,y,w,h);ctx.restore();
+  }
+  function releaseBuffers(){if(surface)surface.width=surface.height=1;if(maskSurface)maskSurface.width=maskSurface.height=1;surfaceUsedW=surfaceUsedH=0}
+  return {STABILIZATION_MS,PATH_BATCH_SIZE,appendSample,visibleSamples,smoothPoints,widthAt,outline,drawCanvas,eraseCanvas,drawMasked,releaseBuffers};
 });
 
