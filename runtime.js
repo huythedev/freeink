@@ -104,6 +104,14 @@
     }
     return null;
   }
+  function embeddedImageSize(src){
+    if(typeof src!=='string'||!/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(src))return null;
+    try{
+      const start=src.indexOf(',')+1,jpeg=/^data:image\/jpe?g;/i.test(src);
+      const read=n=>{const header=atob(src.slice(start,start+n));return imageSize(Uint8Array.from(header,c=>c.charCodeAt(0)))};
+      const size=read(jpeg?65536:128);return size||jpeg&&read(1398100)||null;
+    }catch{return null}
+  }
   const orientedImageSize=size=>size.orientation>=5?{w:size.h,h:size.w}:size;
   function fittedImage(w,h){
     if(!Number.isFinite(w)||!Number.isFinite(h)||w<=0||h<=0)throw Error('Invalid image dimensions');
@@ -165,5 +173,5 @@
     }));
     return {title:String(source.title||'Imported note').slice(0,200),pages};
   }
-  return {LIMITS,snapshotPages,writableItem,duplicatePage,strokeBounds,pageWindow,eraseItems,translateErasures,scaleErasures,LruCache,abortError,checkAbort,yieldToMain,imageSize,orientedImageSize,fittedImage,checkDocxZip,validateNote};
+  return {LIMITS,snapshotPages,writableItem,duplicatePage,strokeBounds,pageWindow,eraseItems,translateErasures,scaleErasures,LruCache,abortError,checkAbort,yieldToMain,imageSize,embeddedImageSize,orientedImageSize,fittedImage,checkDocxZip,validateNote};
 });

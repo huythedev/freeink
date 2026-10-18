@@ -17,7 +17,8 @@ const templateLabels = {ruled:'Ruled paper',blank:'Blank paper',graph:'Graph pap
 const pageEl = $('pages'), area = $('document-area');
 function inkDelayPreference(){try{return localStorage.getItem('freeink-ink-stabilization')==='off'?0:Ink.STABILIZATION_MS}catch{return Ink.STABILIZATION_MS}}
 let state = {notes:[],currentId:null,tool:'pen',color:'#262e3a',width:3,eraserWidth:20,shape:'line',zoom:1,sidebar:false,ruler:false,selection:[],gesture:null,db:null,history:[],future:[],saveTimer:null,popup:null,toastTimer:null,saving:false,inkDelay:inkDelayPreference(),revision:0,savedRevision:0,dirtyNotes:new Set(),savePromise:null,saveError:null,store:null,operation:null};
-const imageCache=new Runtime.LruCache();
+const imageCache=new Runtime.LruCache({onEvict:entry=>entry.controller?.abort()});
+let rasterQueue=Promise.resolve();
 let pageShells=[],activePages=new Set(),viewportFrame=0,pageTop=29,pageGap=26;
 const current = () => state.notes.find(n=>n.id===state.currentId);
 const curPage = (idx) => current()?.pages[idx];
@@ -177,12 +178,27 @@ function drawText(ctx,e){ctx.save();ctx.fillStyle=e.color||'#24364c';ctx.font=`$
 function loadRaster(src){
   if(!src)return Promise.reject(Error('Missing image'));
   const cached=imageCache.get(src);if(cached)return cached.promise;
-  const entry={image:null,promise:null};
-  entry.promise=new Promise((resolve,reject)=>{
-    const image=new Image();
-    image.onload=()=>{image.onload=image.onerror=null;entry.image=image;if(imageCache.get(src)===entry)imageCache.set(src,entry,image.naturalWidth*image.naturalHeight*4);resolve(image)};
-    image.onerror=()=>{image.onload=image.onerror=null;if(imageCache.get(src)===entry)imageCache.delete(src);reject(Error('Failed to load an inserted image'))};image.src=src;
-  });
+  const controller=new AbortController(),entry={image:null,promise:null,controller};
+  entry.promise=(async()=>{
+    let source=src;const size=Runtime.embeddedImageSize(src);
+    if(size){
+      const fit=Runtime.fittedImage(size.w,size.h);
+      if(fit.w!==size.w||fit.h!==size.h){
+        // Legacy notebooks can still contain original camera/PDF-sized images.
+        // Normalize one at a time before browser Image decoding; eviction aborts it.
+        const normalized=rasterQueue.then(()=>{Runtime.checkAbort(controller.signal);return runFileWorker('image-import',{src},{signal:controller.signal,update(){}})});
+        rasterQueue=normalized.catch(()=>{});source=(await normalized).src;
+      }
+    }
+    Runtime.checkAbort(controller.signal);
+    return new Promise((resolve,reject)=>{
+      const image=new Image(),cleanup=()=>{image.onload=image.onerror=null;controller.signal.removeEventListener('abort',cancel)};
+      const cancel=()=>{cleanup();image.src='';reject(Runtime.abortError())};
+      image.onload=()=>{cleanup();entry.image=image;if(imageCache.get(src)===entry)imageCache.set(src,entry,image.naturalWidth*image.naturalHeight*4);resolve(image)};
+      image.onerror=()=>{cleanup();reject(Error('Failed to load an inserted image'))};
+      controller.signal.addEventListener('abort',cancel,{once:true});image.src=source;
+    });
+  })().catch(error=>{if(imageCache.get(src)===entry)imageCache.delete(src);throw error});
   imageCache.set(src,entry,src.length);return entry.promise;
 }
 function imageFor(src){return imageCache.get(src)?.image||null}
@@ -223,7 +239,7 @@ function drawPage(index,finished=null){
       for(const item of page.items){
         if(!canvas.isConnected||version!==canvas._renderVersion)break;
         if(item.kind==='image'){
-          try{const image=await loadRaster(item.src);if(!canvas.isConnected||version!==canvas._renderVersion)break;drawItem(ctx,item,index,image)}catch(error){console.warn(error);toast('An image could not be loaded')}
+          try{const image=await loadRaster(item.src);if(!canvas.isConnected||version!==canvas._renderVersion)break;drawItem(ctx,item,index,image)}catch(error){if(error.name!=='AbortError'){console.warn(error);toast('An image could not be loaded')}}
         }else drawItem(ctx,item,index);
         if(performance.now()-yielded>8){await Runtime.yieldToMain();yielded=performance.now()}
       }
