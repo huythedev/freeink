@@ -9,7 +9,7 @@
 </head>
 <body>
   <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-    <symbol id="i-update" viewBox="0 0 24 24"><path d="M20 7V3h-4M20 3l-5 5a7 7 0 1 0 2 8M4 17v4h4M4 21l5-5"/></symbol>
+    <symbol id="i-update" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.4-6.4L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.4 6.4L3 16M8 16H3v5"/></symbol>
     <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
@@ -20,6 +20,7 @@
     <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20 9 18.5 20 7.5 16.5 4 5.5 15ZM14.3 6.2l3.5 3.5"/><path d="m5.5 15 3.5 3.5"/></symbol>
     <symbol id="i-highlighter" viewBox="0 0 24 24"><path d="m5 14 8.5-9 5.5 5.5-8.5 9H5v-5.5ZM3 22h18M13.5 5l5.5 5.5"/></symbol>
     <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m4 14 9-10a2 2 0 0 1 3 0l5 5a2 2 0 0 1 0 3l-8 8H8l-4-4a1.5 1.5 0 0 1 0-2ZM10 9l8 8M13 20h8"/></symbol>
+    <symbol id="i-pixel-eraser" viewBox="0 0 24 24"><path d="m4 14 9-10a2 2 0 0 1 3 0l5 5a2 2 0 0 1 0 3l-8 8H8l-4-4a1.5 1.5 0 0 1 0-2ZM10 9l8 8"/><circle cx="19" cy="20" r="2"/></symbol>
     <symbol id="i-lasso" viewBox="0 0 24 24"><path d="M8 17c-5-1-6-7-2-11 4-4 13-2 14 4s-6 9-11 7-1-5 2-4c3 2-1 6-1 8" stroke-dasharray="3 2"/></symbol>
     <symbol id="i-shape" viewBox="0 0 24 24"><path d="M3 3h9v9H3zM16 5a4 4 0 1 1 0 8 4 4 0 0 1 0-8ZM13 20l4-6 4 6z"/></symbol>
     <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6V4h16v2M12 4v16M8 20h8"/></symbol>
@@ -57,7 +58,7 @@
       <div class="top-right">
         <label class="lang-control" title="Language / Ngôn ngữ"><span data-i18n="Language">Language</span><select id="language-select" aria-label="Language / Ngôn ngữ"><option value="en">EN</option><option value="vi">VI</option></select></label>
         <button class="text-button guide-button" id="guide-btn" type="button" data-i18n-title="User guide" title="User guide"><svg><use href="#i-book"/></svg><span data-i18n="Guide">Guide</span></button>
-        <button class="text-button update-button" id="update-btn" title="Check for updates from GitHub Releases" data-i18n-title="Check for updates from GitHub Releases"><svg><use href="#i-update"/></svg><span id="update-label" data-i18n="Updates">Updates</span></button>
+        <button class="text-button update-button" id="update-btn" title="Check for updates from GitHub Releases" data-i18n-title="Check for updates from GitHub Releases"><svg class="update-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-update"/></svg><span id="update-label" data-i18n="Updates">Updates</span></button>
         <button class="text-button" id="import-btn" title="Import image, PDF, DOCX or FreeInk note" data-i18n-title="Import image, PDF, DOCX or FreeInk note"><svg><use href="#i-file"/></svg><span data-i18n="Import">Import</span></button>
         <button class="primary-button" id="export-btn" title="Export note" data-i18n-title="Export note"><svg><use href="#i-export"/></svg><span data-i18n="Export">Export</span><svg class="chevron"><use href="#i-chevron"/></svg></button>
         <button class="icon-button" id="options-btn" title="More options" data-i18n-title="More options"><svg><use href="#i-dots"/></svg></button>
@@ -81,11 +82,10 @@
       <main class="editor">
         <div class="ribbon" role="toolbar" aria-label="Drawing toolbar">
           <div class="ribbon-tools">
-            <button data-tool="pen" class="tool-button active" title="Pen (P)" data-i18n-title="Pen (P)"><svg><use href="#i-pen"/></svg><span data-i18n="Pen">Pen</span></button>
+            <button data-tool="pen" class="tool-button active" title="Pen (P)" data-i18n-title="Pen (P)"><svg><use href="#i-pen"/></svg></button>
             <button data-tool="pencil" class="tool-button" title="Pencil (K)" data-i18n-title="Pencil (K)"><svg><use href="#i-pencil"/></svg></button>
             <button data-tool="highlighter" class="tool-button" title="Highlighter (H)" data-i18n-title="Highlighter (H)"><svg><use href="#i-highlighter"/></svg></button>
-            <button data-tool="eraser" class="tool-button" title="Erase object (E)" data-i18n-title="Erase object (E)"><svg><use href="#i-eraser"/></svg></button>
-        <button data-tool="pixel-eraser" class="tool-button" title="Pixel eraser (Shift+E)" aria-label="Pixel eraser" data-i18n-title="Pixel eraser (Shift+E)" data-i18n-aria="Pixel eraser"><svg><use href="#i-eraser"/><circle cx="18" cy="18" r="3" fill="currentColor" stroke="none"/></svg></button>
+            <button id="eraser-tool" data-tool="eraser" class="tool-button tool-dropdown" title="Eraser (E)" aria-label="Eraser" aria-haspopup="menu" aria-expanded="false" aria-controls="eraser-menu" data-i18n-title="Eraser (E)" data-i18n-aria="Eraser"><svg class="eraser-icon" aria-hidden="true"><use href="#i-eraser"/></svg><svg class="mini-chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
             <span class="ribbon-divider"></span>
             <button data-tool="lasso" class="tool-button" title="Lasso select (L)" data-i18n-title="Lasso select (L)"><svg><use href="#i-lasso"/></svg></button>
             <button data-tool="shape" class="tool-button" title="Shapes (S)" data-i18n-title="Shapes (S)"><svg><use href="#i-shape"/></svg></button>
@@ -96,7 +96,7 @@
           </div>
           <span class="ribbon-divider ribbon-responsive"></span>
           <div class="colors" id="color-palette" aria-label="Ink colors" data-i18n-aria="Ink colors"></div>
-          <input id="custom-color" class="color-input" type="color" value="#3e4656" aria-label="Custom ink color" title="Choose custom color" data-i18n-title="Choose custom color" />
+          <button id="custom-color" class="color-picker-trigger" type="button" aria-label="Custom ink color" title="Choose custom color" aria-haspopup="dialog" aria-expanded="false" aria-controls="ink-color-picker" data-i18n-title="Choose custom color"><span class="color-picker-swatch" aria-hidden="true"></span><svg class="mini-chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
           <div class="ribbon-grow"></div>
           <div class="stroke-width-wrap"><span class="width-icon" id="width-preview"></span><input id="stroke-width" type="range" min="1" max="24" value="3" aria-label="Ink thickness" data-i18n-aria="Ink thickness" title="Stroke width" data-i18n-title="Stroke width"/><span class="width-value" id="width-value">3</span></div>
           <span class="ribbon-divider"></span>
@@ -122,6 +122,7 @@
   <script src="storage.js" defer></script>
   <script src="ink-engine.js" defer></script>
   <script src="vector-pdf.js" defer></script>
+  <script src="color-picker.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

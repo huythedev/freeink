@@ -4,7 +4,7 @@ const {makeServer}=require('../server');
 (async()=>{
  const server=makeServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
  try{
-  for(const file of ['runtime.js','storage.js','file-worker.js','ink-engine.js']){const res=await fetch(base+'/'+file);assert.equal(res.status,200);assert.match(res.headers.get('content-type'),/javascript/);assert((await res.text()).length>50)}
+  for(const file of ['runtime.js','storage.js','file-worker.js','ink-engine.js','color-picker.js']){const res=await fetch(base+'/'+file);assert.equal(res.status,200);assert.match(res.headers.get('content-type'),/javascript/);assert((await res.text()).length>50)}
   const head=await fetch(base+'/app.js',{method:'HEAD'});assert.equal(head.status,200);assert.equal((await head.text()).length,0);
   assert.equal((await fetch(base+'/app.js',{method:'POST'})).status,405);
   assert.equal((await fetch(base+'/%E0%A4%A')).status,400);

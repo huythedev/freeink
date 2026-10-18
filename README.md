@@ -33,7 +33,7 @@ Unsigned GitHub installers may show Microsoft's SmartScreen **Unrecognized app**
 
 ## Responsiveness, pixel eraser and Windows document opening (next release)
 
-Use **Shift+E** for the new pixel eraser, or **E** to erase a whole object. Partial erasures work on ink, shapes, text and images and survive undo, editable backups, PNG and vector PDF export. Installed EXE/MSI versions register **.freeink** files with Windows; double-clicking imports an editable copy into the running app. Edits auto-save inside FreeInk; export again to update the backup file.
+Choose **Object eraser** or **Pixel eraser** from the shared Eraser menu. **E** activates the remembered mode; **Shift+E** selects Pixel eraser directly. Open the custom ink swatch to drag the color field and hue slider, or enter a hex color. Tool buttons use icons with tooltips. Partial erasures work on ink, shapes, text and images and survive undo, editable backups, PNG and vector PDF export. Installed EXE/MSI versions register **.freeink** files with Windows; double-clicking imports an editable copy into the running app. Edits auto-save inside FreeInk; export again to update the backup file.
 
 Long notebooks now render nearby pages only. Undo shares unchanged stroke data, autosave writes changed notebooks, and heavy file conversions run in cancellable workers. See **[PERFORMANCE-AUDIT.md](PERFORMANCE-AUDIT.md)** for findings, migration details, measurements and Windows verification steps.
 
