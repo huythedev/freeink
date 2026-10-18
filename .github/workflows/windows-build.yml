@@ -16,7 +16,7 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Test PDF encoder
+      - name: Test editor and desktop lifecycle
         run: npm test
       - name: Build EXE and MSI without publishing
         env:
@@ -27,6 +27,9 @@ jobs:
         run: |
           if (-not @(Get-ChildItem dist -Filter '*.exe' -File).Count) { throw 'EXE not built' }
           if (-not @(Get-ChildItem dist -Filter '*.msi' -File).Count) { throw 'MSI not built' }
+      - name: Verify Windows file associations
+        shell: pwsh
+        run: ./scripts/verify-windows-association.ps1
       - name: Upload Windows test installers
         uses: actions/upload-artifact@v4
         with:

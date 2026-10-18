@@ -10,10 +10,11 @@
     "start": "electron .",
     "dev": "node server.js",
     "dist:win": "node scripts/build-windows.cjs",
-    "test": "node tests/vector-pdf.test.cjs && node tests/i18n.test.cjs && node tests/ink-engine.test.cjs && node tests/ink-input.test.cjs",
+    "test": "node scripts/test.cjs",
     "release:win": "node scripts/build-windows.cjs",
     "dist:portable": "electron-builder --win portable --publish never",
-    "dist:mac": "node scripts/build-macos.cjs"
+    "dist:mac": "node scripts/build-macos.cjs",
+    "build:standalone": "node scripts/build-standalone.cjs"
   },
   "dependencies": {
     "pdfjs-dist": "^5.3.93",
@@ -21,6 +22,7 @@
     "mammoth": "^1.9.0"
   },
   "devDependencies": {
+    "@napi-rs/canvas": "^0.1.100",
     "electron": "^36.0.0",
     "electron-builder": "^26.0.12"
   },
@@ -76,6 +78,15 @@
         "zip"
       ],
       "artifactName": "FreeInk-${version}-mac-${arch}.${ext}"
-    }
+    },
+    "fileAssociations": [
+      {
+        "ext": "freeink",
+        "name": "FreeInk.Notebook",
+        "description": "Editable FreeInk notebook",
+        "mimeType": "application/x-freeink",
+        "role": "Editor"
+      }
+    ]
   }
 }

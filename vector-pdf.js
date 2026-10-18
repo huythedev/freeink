@@ -147,34 +147,61 @@
     const w=new Writer(),rootId=w.alloc(),pagesId=w.alloc(),fontId=w.alloc(),gs100=w.alloc(),gs72=w.alloc(),gs28=w.alloc();
     w.put(fontId,'<</Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding>>');
     w.put(gs100,'<</Type /ExtGState /CA 1 /ca 1>>');w.put(gs72,'<</Type /ExtGState /CA .72 /ca .72>>');w.put(gs28,'<</Type /ExtGState /CA .28 /ca .28>>');
-    const kids=[];
+    const kids=[],imageObjects=new Map();
     for(const page of pages){
-      const pageId=w.alloc(),contentId=w.alloc(),imageRefs=[],items=page.items||[];
+      const pageId=w.alloc(),contentId=w.alloc(),imageRefs=[],refsByName=new Map(),maskStates=[],maskCache=new Map(),maskIds=new Map(),items=page.items||[];
+      const registerRef=(name,id)=>{imageRefs.push({name,id});refsByName.set(name,{name,id})};
+      const resources=(command=null)=>{
+        const refs=command?[...command.matchAll(/\/([A-Za-z0-9]+) Do/g)].map(match=>refsByName.get(match[1])).filter(Boolean):imageRefs;
+        const states=command?[]:maskStates;
+        return `<</Font <</F1 ${fontId} 0 R>> /ExtGState <</GS100 ${gs100} 0 R /GS72 ${gs72} 0 R /GS28 ${gs28} 0 R ${states.map(g=>`/${g.name} ${g.id} 0 R`).join(' ')}>> /XObject <<${refs.map(im=>`/${im.name} ${im.id} 0 R`).join(' ')}>>>>`;
+      };
+      const masked=(command,masks)=>{
+        if(!command||!masks?.length)return command;
+        const key=masks.map(mask=>{if(!maskIds.has(mask))maskIds.set(mask,maskIds.size);return maskIds.get(mask)}).join(',');
+        let state=maskCache.get(key);
+        if(!state){
+          let path='q 1 g 0 0 816 1056 re f Q\n';
+          for(const mask of masks)path+=pressureStroke({points:mask.points.map(p=>({...p,p:.5})),width:mask.width,tool:'pen',color:'#000000'});
+          const maskId=w.alloc(),bytes=latinBytes(path),id=w.alloc(),name='Erase'+maskStates.length;
+          w.put(maskId,`<</Type /XObject /Subtype /Form /FormType 1 /BBox [0 0 ${PW} ${PH}] /Group <</S /Transparency /CS /DeviceGray /I true>> /Resources <</ExtGState <</GS100 ${gs100} 0 R>>>> /Length ${bytes.length}>>`,bytes);
+          w.put(id,`<</Type /ExtGState /SMask <</S /Luminosity /G ${maskId} 0 R /BC [1]>>>>`);
+          state={id,name};maskStates.push(state);maskCache.set(key,state);
+        }
+        const id=w.alloc(),name='Item'+imageRefs.length,bytes=latinBytes(command),itemResources=resources(command);
+        w.put(id,`<</Type /XObject /Subtype /Form /FormType 1 /BBox [0 0 ${PW} ${PH}] /Group <</S /Transparency /CS /DeviceRGB /I true>> /Resources ${itemResources} /Length ${bytes.length}>>`,bytes);
+        registerRef(name,id);return `q /${state.name} gs /${name} Do Q\n`;
+      };
       kids.push(`${pageId} 0 R`);
       let stream='q .75 0 0 -.75 0 792 cm\n'+paper(page.template);
       const addInkGroup=item=>{
         const path=pressureStroke(item);if(!path)return '';
         const id=w.alloc(),name='Ink'+imageRefs.length,bytes=latinBytes(path);
         w.put(id,`<</Type /XObject /Subtype /Form /FormType 1 /BBox [0 0 ${PW} ${PH}] /Group <</S /Transparency /CS /DeviceRGB /I true>> /Resources <</ExtGState <</GS100 ${gs100} 0 R>>>> /Length ${bytes.length}>>`,bytes);
-        imageRefs.push({name,id});
+        registerRef(name,id);
         return `q /${item.tool==='highlighter'?'GS28':item.tool==='pencil'?'GS72':'GS100'} gs /${name} Do Q\n`;
       };
       for(const it of items){
-        if(it.kind==='stroke')stream+=stroke(it,addInkGroup);
-        else if(it.kind==='shape')stream+=shape(it);
-        else if(it.kind==='text')stream+=textItem(it, options.measure||defaultMeasure);
+        if(it.kind==='stroke')stream+=masked(stroke(it,addInkGroup),it.erasures);
+        else if(it.kind==='shape')stream+=masked(shape(it),it.erasures);
+        else if(it.kind==='text')stream+=masked(textItem(it, options.measure||defaultMeasure),it.erasures);
         else if(it.kind==='image' && options.images){
-          const img=await options.images(it.src);
-          if(!img?.bytes?.length)continue;
-          const imgId=w.alloc(),name='Im'+imageRefs.length;
-          w.put(imgId,`<</Type /XObject /Subtype /Image /Width ${Math.round(img.w)} /Height ${Math.round(img.h)} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.bytes.length}>>`,img.bytes);
-          imageRefs.push({name,id:imgId});
-          stream+=`q ${fmt(it.w)} 0 0 ${fmt(it.h)} ${fmt(it.x)} ${fmt(it.y)} cm /${name} Do Q\n`;
+          let imgId=imageObjects.get(it.src);
+          if(!imgId){
+            const img=await options.images(it.src);if(!img?.bytes?.length)continue;
+            imgId=w.alloc();
+            w.put(imgId,`<</Type /XObject /Subtype /Image /Width ${Math.round(img.w)} /Height ${Math.round(img.h)} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.bytes.length}>>`,img.bytes);
+            imageObjects.set(it.src,imgId);
+          }
+          const name='Im'+imageRefs.length;
+          registerRef(name,imgId);
+          stream+=masked(`q ${fmt(it.w)} 0 0 ${fmt(-it.h)} ${fmt(it.x)} ${fmt(it.y+it.h)} cm /${name} Do Q\n`,it.erasures);
         }
       }
-      stream+='Q\n';const bytes=latinBytes(stream),resources=`<</Font <</F1 ${fontId} 0 R>> /ExtGState <</GS100 ${gs100} 0 R /GS72 ${gs72} 0 R /GS28 ${gs28} 0 R>> /XObject <<${imageRefs.map(im=>`/${im.name} ${im.id} 0 R`).join(' ')}>>>>`;
+      stream+='Q\n';const bytes=latinBytes(stream);
       w.put(contentId,`<</Length ${bytes.length}>>`,bytes);
-      w.put(pageId,`<</Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 612 792] /Resources ${resources} /Contents ${contentId} 0 R>>`);
+      w.put(pageId,`<</Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 612 792] /Resources ${resources()} /Contents ${contentId} 0 R>>`);
+      options.onProgress?.({done:kids.length,total:pages.length});
     }
     w.put(pagesId,`<</Type /Pages /Kids [${kids.join(' ')}] /Count ${kids.length}>>`);w.put(rootId,`<</Type /Catalog /Pages ${pagesId} 0 R>>`);
     return w.output();

@@ -13,6 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install test dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate JavaScript
         run: |
           node --check electron.js
@@ -22,8 +24,14 @@ jobs:
           node --check ink-engine.js
           node --check i18n.js
           node --check server.js
+          node --check runtime.js
+          node --check storage.js
+          node --check file-worker.js
+          node --check desktop-files.js
+          node --check scripts/build-standalone.cjs
+          node --check scripts/test.cjs
           node --check vector-pdf.js
           node --check scripts/build-windows.cjs
           node --check scripts/build-macos.cjs
-      - name: Test vector PDF writer
+      - name: Test editor, storage, file workers and desktop lifecycle
         run: npm test

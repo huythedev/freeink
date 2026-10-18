@@ -82,6 +82,23 @@
     'Open {title}':'Mở {title}',
     '{count} PDF pages ready for annotation':'Đã sẵn sàng chú thích trên {count} trang PDF',
     'Manual & shortcuts':'Hướng dẫn và phím tắt',
+    'Pixel eraser':'Tẩy từng phần','Pixel eraser (Shift+E)':'Tẩy từng phần (Shift+E)','Object eraser':'Xóa đối tượng','Eraser size':'Kích thước tẩy',
+    'Save failed':'Lưu thất bại','Rendering page…':'Đang vẽ trang…','Could not render this page':'Không thể hiển thị trang này',
+    'Page is still loading…':'Trang vẫn đang tải…','An image could not be loaded':'Không thể tải một hình ảnh',
+    'Another file operation is already running':'Một tác vụ tệp khác đang chạy','Operation cancelled':'Đã hủy tác vụ',
+    'File operation failed':'Xử lý tệp thất bại','Exporting PNG…':'Đang xuất PNG…','Preparing editable backup…':'Đang tạo bản sao lưu…',
+    'Exporting vector PDF…':'Đang xuất PDF vector…','Importing file…':'Đang nhập tệp…',
+    'Exporting page {current} of {total}…':'Đang xuất trang {current}/{total}…',
+    'Importing PDF page {current} of {total}…':'Đang nhập trang PDF {current}/{total}…',
+    'PDF imported: first {count} of {total} pages':'Đã nhập {count} trang đầu trong tổng số {total} trang PDF',
+    'Converting DOCX…':'Đang chuyển đổi DOCX…','Laying out DOCX…':'Đang sắp xếp nội dung DOCX…',
+    'File too large (75 MB limit)':'Tệp quá lớn (giới hạn 75 MB)',
+    'Importing page {current} of {total}…':'Đang nhập trang {current}/{total}…','Laying out document…':'Đang sắp xếp nội dung…',
+    'Imported the first {count} of {total} PDF pages':'Đã nhập {count} trang PDF đầu trong tổng số {total} trang',
+    'Could not load notes':'Không thể tải ghi chú','Retry':'Thử lại',
+    'Your saved notes could not be read. Restart FreeInk to try again. No saved data has been replaced.':'Không thể đọc ghi chú đã lưu. Khởi động lại FreeInk để thử lại. Dữ liệu đã lưu chưa bị thay thế.',
+
+
   };
   let language='en';
   try {language=localStorage.getItem(storageKey)==='vi'?'vi':'en';}catch{}

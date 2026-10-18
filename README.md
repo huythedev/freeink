@@ -31,15 +31,21 @@ Unsigned GitHub installers may show Microsoft's SmartScreen **Unrecognized app**
 
 **Windows installer without publishing:** The [Windows installer test-build workflow](https://github.com/huythedev/freeink/actions/workflows/windows-build.yml) runs on pushes to `main` (and can be started manually under Actions). When successful, download the workflow artifact `FreeInk-Windows-EXE-and-MSI`. The unsigned test packages are **not** published GitHub Releases; public auto-updates require the manually run [Publish Windows release](.github/workflows/windows-release.yml) action.
 
+## Responsiveness, pixel eraser and Windows document opening (next release)
+
+Use **Shift+E** for the new pixel eraser, or **E** to erase a whole object. Partial erasures work on ink, shapes, text and images and survive undo, editable backups, PNG and vector PDF export. Installed EXE/MSI versions register **.freeink** files with Windows; double-clicking imports an editable copy into the running app. Edits auto-save inside FreeInk; export again to update the backup file.
+
+Long notebooks now render nearby pages only. Undo shares unchanged stroke data, autosave writes changed notebooks, and heavy file conversions run in cancellable workers. See **[PERFORMANCE-AUDIT.md](PERFORMANCE-AUDIT.md)** for findings, migration details, measurements and Windows verification steps.
+
 ## Main features
 
-- Pen and pencil with **24 ms trailing-ink stabilization** (toggle in Note options), full coalesced pointer input, stylus **pressure and tilt** when hardware/driver supports them, highlighter, whole-object eraser and lasso for moving and duplicating strokes. New strokes are variable-width vectors in both the editor and exported PDF; older notes remain readable.
+- Pen and pencil with **24 ms trailing-ink stabilization** (toggle in Note options), full coalesced pointer input, stylus **pressure and tilt** when hardware/driver supports them, highlighter, whole-object and pixel erasers, and lasso for moving and duplicating strokes. New strokes are variable-width vectors in both the editor and exported PDF; older notes remain readable.
 - Line, rectangle, ellipse, triangle and arrow shapes; typed editable text blocks.
 - Clipboard paste (`Ctrl+V`) of PNG/JPEG/etc. screenshots and normal text while focused on the editor; drag and drop images onto pages; import image files.
 - Move and resize inserted images with Lasso: select an image and drag its bottom-right selection handle.
 - Ruled, plain, grid, dots, music and dark paper; many pages per note and searchable local gallery.
 - **Resolution-independent PDF export:** ink paths, shapes, lines and paper patterns use PDF vector drawing commands, not flattened JPEG page screenshots. Standard Latin text is native PDF text. Images/photographs and imported scanned PDF page backgrounds remain raster assets, so their sharpness is limited by original resolution. For text characters outside the builtin PDF WinAnsi encoding, see limitation below.
-- PDF import to annotate as editable ink overlay (**desktop/npm preview**, maximum 50 PDF pages). PDF backgrounds are currently rendered at ~2.4× page scale and embedded as images, not as source PDF vectors.
+- PDF import to annotate as editable ink overlay (**desktop/npm preview**, maximum 50 PDF pages). PDF backgrounds are currently rendered at approximately 2× fitted page scale and embedded as images, not as source PDF vectors.
 - DOCX import into editable FreeInk pages via locally installed Mammoth browser bundle (**desktop/npm preview**). Paragraphs, headings, simple tables and embedded inline images import in approximate reading order. This is a *reflowed document import*, not pixel-perfect Word page layout; sophisticated formatting, headers, tracked changes and equations are not preserved. Old binary `.doc` is not supported.
 - Undo/redo, local IndexedDB persistence, PNG export, `.freeink` JSON backup/import.
 - An **Updates** button on the desktop top bar. Installed GitHub-release NSIS apps check GitHub Releases for new versions, let the user download, and then explicitly restart into the newly installed version.
@@ -48,7 +54,7 @@ Unsigned GitHub installers may show Microsoft's SmartScreen **Unrecognized app**
 
 See **[GITHUB-RELEASES.md](GITHUB-RELEASES.md)** for complete setup steps and safeguards.
 
-- **Updater location:** `updater.js` runs in the Electron main process and is kept distinct from the notebook UI. `preload.js` provides only three allowlisted updater actions through an IPC bridge: `check`, `download`, `install`. The browser version never receives updater privileges.
+- **Updater location:** `updater.js` runs in the Electron main process and is kept distinct from the notebook UI. `preload.js` provides allowlisted updater actions through an IPC bridge: `status`, `check`, `download`, `install`. The browser version never receives updater privileges.
 - **Update mechanism:** `electron-updater` reads the installed app's embedded GitHub provider configuration, compares version info in GitHub Releases `latest.yml`, downloads the corresponding NSIS update (integrity verified using manifest hashes) and calls `quitAndInstall` after the user confirms. No hot-swap of random source files or `eval` of fetched code.
 - **App structure changes:** new releases replace the packaged application as a whole. Main-process, renderer, asset, package and folder changes are all included in the next installer, so update logic does not depend on per-file patches. Keep the Windows `appId`, release origin/owner, and app data profile stable. Schema/data format changes still require explicit versioned migrations.
 - **Data safety:** FreeInk saves notes via IndexedDB. The HTTP origin remains `127.0.0.1:17873` so existing Electron notes retain their storage origin across versions. The renderer flushes unsaved notes before invoking install. Export `.freeink` backups before major migration/release changes.
@@ -63,7 +69,7 @@ npm start
 npm run dist:win
 ```
 
-`npm test` checks the standalone PDF writer and generates a two-page test PDF for external inspection when run in this prototype environment. Type checks can be run via `node --check app.js` etc. The updater still needs end-to-end testing between two published versions on Windows. The release workflow builds both formats on a Windows GitHub runner and refuses to publish if either package or the updater manifest is missing.
+`npm test` checks rendering, input, storage, workers and native lifecycle behavior, including real Skia pixel-erasing regressions. Run `npm run build:standalone` after editor source changes to refresh the bundled HTML. Type checks can be run via `node --check app.js` etc. The updater still needs end-to-end testing between two published versions on Windows. The release workflow builds both formats on a Windows GitHub runner and refuses to publish if either package or the updater manifest is missing.
 
 ## Limitations and privacy
 
