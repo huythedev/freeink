@@ -58,19 +58,20 @@
     if(!Ink)throw Error('Ink engine missing');
     const o=Ink.outline(item.points,item);
     if(!o.points.length)return '';
-    let s=`q /${item.tool==='highlighter'?'GS28':item.tool==='pencil'?'GS72':'GS100'} gs ${rgb(item.color)} rg\n`;
-    // Fill every segment and round joint in one vector operation. No
-    // winding holes on reversals and no opacity stripes on marker strokes.
+    let s=`q /GS100 gs ${rgb(item.color)} rg\n`,parts=0;
+    // Match canvas: bounded opaque paths inside an isolated transparency group.
+    const added=()=>{if(++parts===Ink.PATH_BATCH_SIZE){s+='f\n';parts=0}};
     for(const quad of o.segments){
       s+=`${fmt(quad[0].x)} ${fmt(quad[0].y)} m\n`;
       for(let i=1;i<4;i++)s+=`${fmt(quad[i].x)} ${fmt(quad[i].y)} l\n`;
-      s+='h\n';
+      s+='h\n';added();
     }
-    for(let i=0;i<o.points.length;i++)s+=filledCircle(o.points[i],o.radii[i],false);
-    return s+'f Q\n';
+    for(let i=0;i<o.points.length;i++){s+=filledCircle(o.points[i],o.radii[i],false);added()}
+    if(parts)s+='f\n';
+    return s+'Q\n';
   }
-  function stroke(item){
-    if(item.inkVersion===2)return pressureStroke(item);
+  function stroke(item,addInkGroup){
+    if(item.inkVersion===2)return addInkGroup(item);
     const pts=item.points||[];if(!pts.length)return '';
     const width=(item.tool==='highlighter' ? 5 : 1)*(item.width||3)*(.75+.5*(pts[0].p??.5));
     let s=`q /${item.tool==='highlighter'?'GS28':item.tool==='pencil'?'GS72':'GS100'} gs ${rgb(item.color)} RG ${rgb(item.color)} rg ${fmt(width)} w 1 J 1 j\n`;
@@ -151,8 +152,15 @@
       const pageId=w.alloc(),contentId=w.alloc(),imageRefs=[],items=page.items||[];
       kids.push(`${pageId} 0 R`);
       let stream='q .75 0 0 -.75 0 792 cm\n'+paper(page.template);
+      const addInkGroup=item=>{
+        const path=pressureStroke(item);if(!path)return '';
+        const id=w.alloc(),name='Ink'+imageRefs.length,bytes=latinBytes(path);
+        w.put(id,`<</Type /XObject /Subtype /Form /FormType 1 /BBox [0 0 ${PW} ${PH}] /Group <</S /Transparency /CS /DeviceRGB /I true>> /Resources <</ExtGState <</GS100 ${gs100} 0 R>>>> /Length ${bytes.length}>>`,bytes);
+        imageRefs.push({name,id});
+        return `q /${item.tool==='highlighter'?'GS28':item.tool==='pencil'?'GS72':'GS100'} gs /${name} Do Q\n`;
+      };
       for(const it of items){
-        if(it.kind==='stroke')stream+=stroke(it);
+        if(it.kind==='stroke')stream+=stroke(it,addInkGroup);
         else if(it.kind==='shape')stream+=shape(it);
         else if(it.kind==='text')stream+=textItem(it, options.measure||defaultMeasure);
         else if(it.kind==='image' && options.images){
@@ -173,3 +181,4 @@
   }
   return {createVectorPdf,base64,fmt};
 });
+

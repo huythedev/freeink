@@ -10,7 +10,7 @@
     "start": "electron .",
     "dev": "node server.js",
     "dist:win": "node scripts/build-windows.cjs",
-    "test": "node tests/vector-pdf.test.cjs && node tests/i18n.test.cjs && node tests/ink-engine.test.cjs",
+    "test": "node tests/vector-pdf.test.cjs && node tests/i18n.test.cjs && node tests/ink-engine.test.cjs && node tests/ink-input.test.cjs",
     "release:win": "node scripts/build-windows.cjs",
     "dist:portable": "electron-builder --win portable --publish never",
     "dist:mac": "node scripts/build-macos.cjs"
@@ -79,3 +79,4 @@
     }
   }
 }
+

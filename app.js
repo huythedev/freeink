@@ -93,7 +93,7 @@ async function pageToCanvas(page,index,scale=1){const canvas=document.createElem
 function loc(e,canvas){const r=canvas.getBoundingClientRect();return {
   x:clamp((e.clientX-r.left)/state.zoom,0,PAGE_W),
   y:clamp((e.clientY-r.top)/state.zoom,0,PAGE_H),
-  p:e.pointerType==='pen'&&e.pressure>0?clamp(e.pressure,.03,1):.5,
+  p:e.pointerType==='pen'?clamp(Number.isFinite(e.pressure)?e.pressure:.5,.03,1):.5,
   tx:e.pointerType==='pen'?clamp(e.tiltX||0,-90,90):0,
   ty:e.pointerType==='pen'?clamp(e.tiltY||0,-90,90):0,
   twist:e.pointerType==='pen'?(e.twist||0):0
@@ -108,6 +108,11 @@ function sampleInk(g,e,canvas){
     let time=Number.isFinite(sample.timeStamp)&&Math.abs(sample.timeStamp-clock)<60000?sample.timeStamp:clock;
     const last=g.points[g.points.length-1];
     if(last)time=Math.max(time,last.t);
+    // A lift reports zero pressure after contact ends; it is not a new nib
+    // width. Preserve the last contact pressure at the final position.
+    if(last&&e.type==='pointerup'&&sample.pointerType==='pen'&&sample.pressure===0){
+      p.p=last.p;p.tx=last.tx;p.ty=last.ty;p.twist=last.twist;
+    }
     Ink.appendSample(g.points,{...p,t:time});
   }
 }
@@ -135,15 +140,15 @@ function eraseAt(page,p){for(let i=page.items.length-1;i>=0;i--){if(hitItem(page
 function bindDrawing(canvas,index){
   canvas.addEventListener('contextmenu',e=>e.preventDefault());
   canvas.addEventListener('dblclick',e=>{if(state.tool!=='lasso'&&state.tool!=='text')return;const point=loc(e,canvas);const item=[...curPage(index).items].reverse().find(item=>item.kind==='text'&&hitItem(item,point));if(item)startTextEdit(canvas,index,{x:item.x,y:item.y},item)});
-  canvas.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;if(document.querySelector('.text-editor'))finishActiveText(true);const p=loc(e,canvas);const page=curPage(index);if(!page)return;
+  canvas.addEventListener('pointerdown',e=>{if(state.gesture||e.isPrimary===false||(e.button!==0&&e.pointerType==='mouse'))return;if(document.querySelector('.text-editor'))finishActiveText(true);const p=loc(e,canvas);const page=curPage(index);if(!page)return;
     canvas.setPointerCapture(e.pointerId);
-    if(state.tool==='hand'||state.spacePan){state.gesture={mode:'pan',index,startX:e.clientX,startY:e.clientY,scrollLeft:area.scrollLeft,scrollTop:area.scrollTop};canvas.style.cursor='grabbing';return}
+    if(state.tool==='hand'||state.spacePan){state.gesture={mode:'pan',index,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,scrollLeft:area.scrollLeft,scrollTop:area.scrollTop};canvas.style.cursor='grabbing';return}
     if(state.tool==='text'){canvas.releasePointerCapture(e.pointerId);startTextEdit(canvas,index,p);return}
-    if(state.tool==='eraser'){saveHistory();state.gesture={mode:'erase',index,changed:false};if(eraseAt(page,p)){state.gesture.changed=true;drawPage(index)}return}
+    if(state.tool==='eraser'){saveHistory();state.gesture={mode:'erase',index,pointerId:e.pointerId,changed:false};if(eraseAt(page,p)){state.gesture.changed=true;drawPage(index)}return}
     if(state.tool==='lasso'){const selectedImage=page.items.find(item=>item.kind==='image'&&state.selection.includes(item.id));
-      if(selectedImage){const b=getBounds(selectedImage);if(Math.hypot(p.x-(b.x+b.w+4),p.y-(b.y+b.h+4))<23){saveHistory();state.gesture={mode:'resize',index,id:selectedImage.id,start:p,w:selectedImage.w,h:selectedImage.h,changed:false};return}}
-      if(state.selection.length&&hitSelected(page,p)){saveHistory();state.gesture={mode:'move',index,last:p,changed:false};return}state.selection=[];state.gesture={mode:'lasso',index,points:[p]};drawPage(index);return}
-    saveHistory();if(state.tool==='shape'){state.gesture={mode:'shape',index,start:p,end:p}}else{const g={mode:'draw',index,pointerId:e.pointerId,points:[],visible:[],delay:state.inkDelay,raf:0,stroke:{id:uid(),kind:'stroke',inkVersion:2,tool:state.tool,color:state.color,width:state.width,points:[]}};state.gesture=g;sampleInk(g,e,canvas);animateInk(g,index)}drawPage(index);
+      if(selectedImage){const b=getBounds(selectedImage);if(Math.hypot(p.x-(b.x+b.w+4),p.y-(b.y+b.h+4))<23){saveHistory();state.gesture={mode:'resize',index,pointerId:e.pointerId,id:selectedImage.id,start:p,w:selectedImage.w,h:selectedImage.h,changed:false};return}}
+      if(state.selection.length&&hitSelected(page,p)){saveHistory();state.gesture={mode:'move',index,pointerId:e.pointerId,last:p,changed:false};return}state.selection=[];state.gesture={mode:'lasso',index,pointerId:e.pointerId,points:[p]};drawPage(index);return}
+    saveHistory();if(state.tool==='shape'){state.gesture={mode:'shape',index,pointerId:e.pointerId,start:p,end:p}}else{const g={mode:'draw',index,pointerId:e.pointerId,points:[],visible:[],delay:state.inkDelay,raf:0,stroke:{id:uid(),kind:'stroke',inkVersion:2,tool:state.tool,color:state.color,width:state.width,points:[]}};state.gesture=g;sampleInk(g,e,canvas);animateInk(g,index)}drawPage(index);
   });
   canvas.addEventListener('pointermove',e=>{const g=state.gesture;if(!g||g.index!==index||(g.pointerId!=null&&g.pointerId!==e.pointerId))return;const p=loc(e,canvas);if(g.mode==='pan'){area.scrollLeft=g.scrollLeft-(e.clientX-g.startX);area.scrollTop=g.scrollTop-(e.clientY-g.startY);return}
     if(g.mode==='draw'){sampleInk(g,e,canvas);animateInk(g,index)}
@@ -162,7 +167,7 @@ function bindDrawing(canvas,index){
     else if((g.mode==='erase'||g.mode==='move'||g.mode==='resize')&&g.changed)markChanged();
     drawPage(index);setUndoButtons();
   }
-  canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',finish);canvas.addEventListener('lostpointercapture',()=>{if(state.gesture?.index===index&&state.gesture.mode==='pan')state.gesture=null});
+  canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',finish);canvas.addEventListener('lostpointercapture',finish);
 }
 function startTextEdit(canvas,index,p,item=null){if(document.querySelector('.text-editor'))finishActiveText(true);const sheet=canvas.parentElement;const editor=document.createElement('textarea');editor.className='text-editor';editor.value=item?.text||'';editor.style.left=`${p.x}px`;editor.style.top=`${p.y}px`;editor.style.color=item?.color||state.color;editor.style.fontSize=`${item?.size||22}px`;editor.placeholder=t('Type your note…');sheet.appendChild(editor);editor.focus();const finish=(save)=>{if(!editor.isConnected)return;const text=editor.value.trim();editor.remove();if(save&&text){saveHistory();if(item){item.text=text;item.color=editor.style.color;item.w=editor.offsetWidth||item.w}else{curPage(index).items.push({id:uid(),kind:'text',text,x:p.x,y:p.y,w:Math.max(270,editor.offsetWidth||270),size:22,color:state.color})}markChanged()}drawPage(index)};editor._finish=finish;editor.addEventListener('blur',()=>finish(true));editor.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();finish(false)}if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();finish(true)}})}
 function finishActiveText(save=true){document.querySelector('.text-editor')?._finish?.(save)}
@@ -385,3 +390,4 @@ async function main(){I?.apply();addEvents();connectUpdater();updatePalette();se
 }
 main().catch(e=>{console.error(e);toast('Something went wrong while starting FreeInk')});
 })();
+
