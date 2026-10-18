@@ -28,7 +28,7 @@ Masks participate in undo/redo, move/duplicate with their object and scale with 
 
 ## Windows .freeink association
 
-The NSIS EXE and native MSI register `.freeink` with an application icon and a quoted document-open command. Keep the installer scope selected by the user; no forced machine-wide NSIS install or overwrite of Windows UserChoice is required. A pre-existing user-selected default can still be changed through Windows **Open with → FreeInk**.
+The NSIS EXE and native MSI register `.freeink` with an application icon and a quoted document-open command. A small NSIS include also quotes the executable path (the bundled electron-builder v26 template quotes only the document argument), so installations under paths with spaces launch correctly. Keep the installer scope selected by the user; no forced machine-wide NSIS install or overwrite of Windows UserChoice is required. A pre-existing user-selected default can still be changed through Windows **Open with → FreeInk**.
 
 A cold launch queues the file until the editor is ready. A later double-click restores/focuses the existing window and opens the file there. Only OS-supplied `.freeink` paths enter the bounded queue; the renderer cannot request arbitrary filesystem reads. Reads are asynchronous and limited to 75 MiB. Invalid or unavailable files report an error without replacing existing notes.
 
@@ -42,7 +42,7 @@ An additional independent MuPDF raster check confirmed PDF masks, surviving narr
 
 `node scripts/benchmark.cjs` compares 45 retained undo states for 30,000 points in separate Node processes. On the development Linux runtime, JSON snapshots retained approximately **115.29 MiB** and took **586 ms** total; shared snapshots retained approximately **0.10 MiB** and took less than 1 ms total. These are synthetic V8 measurements, not Windows process/RAM measurements. The 200-page viewport regression mounts at most four canvases for an 800-pixel viewport at 100% zoom, plus an active gesture page when necessary.
 
-Windows CI builds both installers, inspects the MSI association tables and verifies the registry command after a silent per-user NSIS installation on its disposable runner.
+Windows CI builds both installers, inspects the MSI association tables and verifies the registry command after a silent per-user NSIS installation under a path containing spaces on its disposable runner.
 
 ## Windows interactive checks before release
 

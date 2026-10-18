@@ -17,14 +17,14 @@ $view.Close()
 [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($database)
 [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($installer)
 
-$installRoot = Join-Path $env:RUNNER_TEMP 'FreeInkAssociation'
+$installRoot = Join-Path $env:RUNNER_TEMP 'FreeInk Association Test'
 try {
   $process = Start-Process -FilePath $exe.FullName -ArgumentList @('/S', '/currentuser', "/D=$installRoot") -Wait -PassThru
   if ($process.ExitCode -ne 0) { throw "NSIS exited with $($process.ExitCode)" }
   $class = (Get-Item 'HKCU:\Software\Classes\.freeink').GetValue('')
   if ($class -ne 'FreeInk.Notebook') { throw 'NSIS did not register the expected .freeink class' }
   $command = (Get-Item "HKCU:\Software\Classes\$class\shell\open\command").GetValue('')
-  if ($command -notmatch 'FreeInk\.exe"?\s+"%1"') { throw "Invalid NSIS open command: $command" }
+  if ($command -notmatch '^"[^"]+FreeInk\.exe"\s+"%1"$') { throw "Invalid NSIS open command: $command" }
   Write-Host 'NSIS installed association and MSI association tables both verified.'
 } finally {
   Get-Process -Name FreeInk -ErrorAction SilentlyContinue | Stop-Process -Force
