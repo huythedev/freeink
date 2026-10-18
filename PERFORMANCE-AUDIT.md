@@ -28,7 +28,7 @@ Masks participate in undo/redo, move/duplicate with their object and scale with 
 
 ## Windows .freeink association
 
-The NSIS EXE and native MSI register `.freeink` with an application icon and a quoted document-open command. A small NSIS include also quotes the executable path (the bundled electron-builder v26 template quotes only the document argument), so installations under paths with spaces launch correctly. Keep the installer scope selected by the user; no forced machine-wide NSIS install or overwrite of Windows UserChoice is required. A pre-existing user-selected default can still be changed through Windows **Open with → FreeInk**.
+The NSIS EXE and native MSI register `.freeink` with an application icon and a quoted document-open command. Build scripts pass only overrides to electron-builder, avoiding duplicate association objects when package.json is merged with API options. A small NSIS include also quotes the executable path (the bundled electron-builder v26 template quotes only the document argument), so installations under paths with spaces launch correctly. Keep the installer scope selected by the user; no forced machine-wide NSIS install or overwrite of Windows UserChoice is required. A pre-existing user-selected default can still be changed through Windows **Open with → FreeInk**.
 
 A cold launch queues the file until the editor is ready. A later double-click restores/focuses the existing window and opens the file there. Only OS-supplied `.freeink` paths enter the bounded queue; the renderer cannot request arbitrary filesystem reads. Reads are asynchronous and limited to 75 MiB. Invalid or unavailable files report an error without replacing existing notes.
 

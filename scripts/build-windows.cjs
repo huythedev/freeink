@@ -21,8 +21,9 @@ if (process.env.FREEINK_RELEASE_VERSION && process.env.FREEINK_RELEASE_VERSION !
   console.error(`Requested release ${process.env.FREEINK_RELEASE_VERSION} does not match package version ${pkg.version}`);
   process.exit(1);
 }
+// electron-builder loads package.json itself; repeating object arrays creates
+// duplicate MSI extensions when the on-disk and API configurations are merged.
 const config = {
-  ...pkg.build,
   publish: { provider: 'github', owner: match[1], repo: match[2], releaseType: 'release' },
 };
 async function main() {
@@ -44,6 +45,7 @@ async function main() {
       publish: 'never',
     });
     const files = await fs.readdir(stage, { withFileTypes: true });
+    if (!files.some(file=>file.isFile()&&file.name.toLowerCase().endsWith(target==='msi'?'.msi':'.exe')))throw Error(`Missing ${target} installer`);
     for (const file of files) {
       if (!file.isFile()) continue;
       if (!/\.(exe|msi|blockmap)$/i.test(file.name) && file.name !== 'latest.yml') continue;
@@ -53,4 +55,4 @@ async function main() {
   }
   console.log('Windows NSIS EXE + native MSI installers built. Publishing is a separate, manual action.');
 }
-main().catch(err => { console.error(err); process.exitCode = 1; });
+main().catch(err => { console.error(err); process.exit(1); });
