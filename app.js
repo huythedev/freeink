@@ -6,8 +6,9 @@ const PAGE_W = 816, PAGE_H = 1056, DB_NAME = 'freeink-notebooks', DB_VERSION = 1
 const $ = (id) => document.getElementById(id);
 const I = window.FreeInkI18n;
 const Ink = window.FreeInkInk;
+const Colors=window.FreeInkColor;
 const Runtime=window.FreeInkRuntime,Storage=window.FreeInkStorage;
-if(!Ink||!Runtime||!Storage)throw Error('FreeInk modules failed to load');
+if(!Ink||!Runtime||!Storage||!Colors)throw Error('FreeInk modules failed to load');
 const t = (message,vars) => I ? I.t(message,vars) : message;
 const uid = () => (globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
@@ -16,7 +17,8 @@ const palette = ['#262e3a','#db464c','#f0a829','#49b976','#397cda','#9359cb','#e
 const templateLabels = {ruled:'Ruled paper',blank:'Blank paper',graph:'Graph paper',dots:'Dot grid',dark:'Blackboard',music:'Music staff'};
 const pageEl = $('pages'), area = $('document-area');
 function inkDelayPreference(){try{return localStorage.getItem('freeink-ink-stabilization')==='off'?0:Ink.STABILIZATION_MS}catch{return Ink.STABILIZATION_MS}}
-let state = {notes:[],currentId:null,tool:'pen',color:'#262e3a',width:3,eraserWidth:20,shape:'line',zoom:1,sidebar:false,ruler:false,selection:[],gesture:null,db:null,history:[],future:[],saveTimer:null,popup:null,toastTimer:null,saving:false,inkDelay:inkDelayPreference(),revision:0,savedRevision:0,dirtyNotes:new Set(),savePromise:null,saveError:null,store:null,operation:null};
+function eraserPreference(){try{return localStorage.getItem('freeink-eraser-mode')==='pixel-eraser'?'pixel-eraser':'eraser'}catch{return 'eraser'}}
+let state = {notes:[],currentId:null,tool:'pen',eraserMode:eraserPreference(),lastInkTool:'pen',color:'#262e3a',width:3,eraserWidth:20,shape:'line',zoom:1,sidebar:false,ruler:false,selection:[],gesture:null,db:null,history:[],future:[],saveTimer:null,popup:null,toastTimer:null,saving:false,inkDelay:inkDelayPreference(),revision:0,savedRevision:0,dirtyNotes:new Set(),savePromise:null,saveError:null,store:null,operation:null};
 const imageCache=new Runtime.LruCache({onEvict:entry=>entry.controller?.abort()});
 let rasterQueue=Promise.resolve();
 let pageShells=[],activePages=new Set(),viewportFrame=0,pageTop=29,pageGap=26;
@@ -152,9 +154,46 @@ function refreshDocument(){
 }
 function setZoom(z){finishGesture();state.zoom=clamp(Math.round(z*100)/100,.4,1.8);$('zoom-display').textContent=`${Math.round(state.zoom*100)}%`;refreshDocument()}
 function fitZoom(){const width=area.clientWidth-60;setZoom(Math.min(1.25,Math.max(.4,width/PAGE_W)))}
-function updateToolButtons(){document.querySelectorAll('.tool-button[data-tool]').forEach(b=>{b.classList.toggle('active',b.dataset.tool===state.tool);b.setAttribute('aria-pressed',String(b.dataset.tool===state.tool))});document.querySelectorAll('.sheet').forEach(s=>s.dataset.tool=state.tool);$('ruler-toggle').classList.toggle('active',state.ruler);$('ruler-toggle').setAttribute('aria-pressed',String(state.ruler))}
-function setTool(tool){finishGesture();state.tool=tool;state.selection=[];syncWidth();updateToolButtons();for(const i of activePages)drawPage(i)}
-function updatePalette(){const el=$('color-palette');el.innerHTML=palette.map(color=>`<button class="color-swatch ${state.color===color?'selected':''}" style="--swatch:${color};${color==='#ffffff'?'border:1px solid #cad1db;':''}" data-color="${color}" title="${color}" aria-label="Color ${color}"></button>`).join('');el.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{state.color=b.dataset.color;$('custom-color').value=state.color;updatePalette();if(['eraser','pixel-eraser','lasso','hand'].includes(state.tool))setTool('pen')})}
+function updateToolButtons(){
+  const eraser=$('eraser-tool'),pixel=state.eraserMode==='pixel-eraser';eraser.dataset.tool=state.eraserMode;
+  eraser.querySelector('.eraser-icon use').setAttribute('href',pixel?'#i-pixel-eraser':'#i-eraser');
+  eraser.title=`${t('Eraser (E)')} · ${t(pixel?'Pixel eraser':'Object eraser')}`;eraser.setAttribute('aria-label',t(pixel?'Pixel eraser':'Object eraser'));
+  document.querySelectorAll('.tool-button[data-tool]').forEach(b=>{b.classList.toggle('active',b.dataset.tool===state.tool);b.setAttribute('aria-pressed',String(b.dataset.tool===state.tool))});document.querySelectorAll('.sheet').forEach(s=>s.dataset.tool=state.tool);$('ruler-toggle').classList.toggle('active',state.ruler);$('ruler-toggle').setAttribute('aria-pressed',String(state.ruler))}
+function setTool(tool){finishGesture();state.tool=tool;
+  if(['eraser','pixel-eraser'].includes(tool)){state.eraserMode=tool;try{localStorage.setItem('freeink-eraser-mode',tool)}catch{}}
+  if(['pen','pencil','highlighter'].includes(tool))state.lastInkTool=tool;state.selection=[];syncWidth();updateToolButtons();for(const i of activePages)drawPage(i)}
+function updatePalette(){
+  const el=$('color-palette');
+  if(!el.childElementCount){
+    el.innerHTML=palette.map(color=>`<button class="color-swatch" style="--swatch:${color};${color==='#ffffff'?'border:1px solid #cad1db;':''}" data-color="${color}" title="${color}" aria-label="${esc(t('Ink color'))} ${color}"></button>`).join('');
+    el.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>setInkColor(b.dataset.color));
+  }
+  el.querySelectorAll('[data-color]').forEach(b=>{b.classList.toggle('selected',state.color===b.dataset.color);b.setAttribute('aria-pressed',String(state.color===b.dataset.color));b.setAttribute('aria-label',t('Ink color')+' '+b.dataset.color)});
+  const custom=$('custom-color');custom.style.setProperty('--ink-color',state.color);custom.title=t('Choose custom color')+' · '+state.color;custom.setAttribute('aria-label',t('Custom ink color')+' '+state.color);
+}
+function setInkColor(value){
+  const color=Colors.normalizeHex(value);if(!color)return;
+  state.color=color;updatePalette();if(['eraser','pixel-eraser','lasso','hand'].includes(state.tool))setTool(state.lastInkTool);
+}
+function colorMenu(anchor){
+  if(state.popup?.id==='ink-color-picker'){hidePopup(true);return}
+  const picker=Colors.createPicker({color:state.color,onChange:setInkColor,onClose:()=>hidePopup(true),translate:t});
+  picker.element._dispose=picker.destroy;openPopup(anchor,picker.element);picker.focus();
+}
+function eraserMenu(anchor){
+  const div=showPopup(anchor,[
+    {label:'Object eraser',icon:'eraser',selected:state.eraserMode==='eraser',radio:true,fn:()=>setTool('eraser')},
+    {label:'Pixel eraser',icon:'pixel-eraser',hint:'Shift+E',selected:state.eraserMode==='pixel-eraser',radio:true,fn:()=>setTool('pixel-eraser')}
+  ],'Eraser mode');div.id='eraser-menu';div.setAttribute('role','menu');div.setAttribute('aria-label',t('Eraser mode'));
+  const items=[...div.querySelectorAll('[role="menuitemradio"]')];items.find(b=>b.getAttribute('aria-checked')==='true')?.focus();
+  div.addEventListener('keydown',event=>{
+    if(event.key==='Tab'){hidePopup(true);return}
+    const index=items.indexOf(document.activeElement);let next;
+    if(event.key==='ArrowDown')next=(index+1)%items.length;else if(event.key==='ArrowUp')next=(index+items.length-1)%items.length;
+    else if(event.key==='Home')next=0;else if(event.key==='End')next=items.length-1;else return;
+    event.preventDefault();event.stopPropagation();items[next].focus();
+  });
+}
 function syncWidth(){const pixel=state.tool==='pixel-eraser',w=pixel?state.eraserWidth:state.width,slider=$('stroke-width');slider.max=pixel?100:24;slider.min=pixel?2:1;slider.value=w;slider.setAttribute('aria-label',t(pixel?'Eraser size':'Stroke width'));slider.title=t(pixel?'Eraser size':'Stroke width');$('width-value').textContent=w;$('width-preview').style.width=`${Math.min(17,Math.max(4,4+w/2))}px`;$('width-preview').style.height=$('width-preview').style.width}
 function setWidth(w){if(state.tool==='pixel-eraser')state.eraserWidth=clamp(+w,2,100);else state.width=clamp(+w,1,24);syncWidth()}
 
@@ -370,9 +409,28 @@ function finishActiveText(save=true){document.querySelector('.text-editor')?._fi
 function deleteSelection(){if(!state.selection.length)return;saveHistory();current().pages.forEach(p=>p.items=p.items.filter(i=>!state.selection.includes(i.id)));const count=state.selection.length;state.selection=[];refreshDocument();markChanged();toast(`${count} item${count===1?'':'s'} deleted`)}
 function duplicateSelection(){if(!state.selection.length)return;saveHistory();for(const page of current().pages){const copied=page.items.filter(i=>state.selection.includes(i.id)).map(x=>{const c=Runtime.writableItem(x);c.id=uid();moveItem(c,22,22);return c});page.items.push(...copied);if(copied.length)state.selection=copied.map(x=>x.id)}refreshDocument();markChanged();toast('Selection duplicated')}
 
-function hidePopup(){state.popup?.remove();state.popup=null}
-function showPopup(anchor,items,title){hidePopup();const div=document.createElement('div');div.className='popup';if(title)div.innerHTML=`<div class="popup-title">${esc(t(title))}</div>`;for(const item of items){if(item.separator){div.insertAdjacentHTML('beforeend','<div class="popup-divider"></div>');continue}const b=document.createElement('button');b.className='popup-item';b.innerHTML=(item.preview?`<span class="paper-preview ${item.preview}"></span>`:item.icon?`<svg><use href="#i-${item.icon}"/></svg>`:'')+`<span>${esc(t(item.label))}</span>`+(item.selected?'<svg class="check"><use href="#i-check"/></svg>':item.hint?`<span class="hint">${esc(t(item.hint))}</span>`:'');b.onclick=()=>{hidePopup();item.fn?.()};div.appendChild(b)}$('popup-layer').appendChild(div);const a=anchor.getBoundingClientRect(),h=div.getBoundingClientRect().height,w=div.getBoundingClientRect().width;let left=Math.max(8,Math.min(innerWidth-w-8,a.left));let top=a.bottom+6;if(top+h>innerHeight-12)top=Math.max(8,a.top-h-6);div.style.left=left+'px';div.style.top=top+'px';state.popup=div;div.addEventListener('pointerdown',e=>e.stopPropagation())}
-function outsidePopup(e){if(state.popup&&!state.popup.contains(e.target)&&!e.target.closest?.('.app-topbar,.toolbar'))hidePopup()}
+function hidePopup(restoreFocus=false){
+  const popup=state.popup,anchor=state.popupAnchor;state.popup=null;state.popupAnchor=null;
+  popup?._dispose?.();popup?.remove();anchor?.setAttribute('aria-expanded','false');if(restoreFocus&&anchor?.isConnected)anchor.focus();
+}
+function openPopup(anchor,div){
+  hidePopup();$('popup-layer').appendChild(div);state.popup=div;state.popupAnchor=anchor;anchor.setAttribute('aria-expanded','true');
+  const a=anchor.getBoundingClientRect(),{height:h,width:w}=div.getBoundingClientRect();
+  const left=Math.max(8,Math.min(innerWidth-w-8,a.left));let top=a.bottom+6;if(top+h>innerHeight-8)top=Math.max(8,a.top-h-6);
+  div.style.left=left+'px';div.style.top=top+'px';div.addEventListener('pointerdown',e=>e.stopPropagation());return div;
+}
+function showPopup(anchor,items,title){
+  const div=document.createElement('div');div.className='popup';if(title)div.innerHTML=`<div class="popup-title">${esc(t(title))}</div>`;
+  for(const item of items){
+    if(item.separator){div.insertAdjacentHTML('beforeend','<div class="popup-divider"></div>');continue}
+    const b=document.createElement('button');b.type='button';b.className='popup-item';
+    if(item.radio){b.setAttribute('role','menuitemradio');b.setAttribute('aria-checked',String(!!item.selected))}
+    b.innerHTML=(item.preview?`<span class="paper-preview ${item.preview}"></span>`:item.icon?`<svg><use href="#i-${item.icon}"/></svg>`:'')+`<span>${esc(t(item.label))}</span>`+(item.selected?'<svg class="check"><use href="#i-check"/></svg>':item.hint?`<span class="hint">${esc(t(item.hint))}</span>`:'');
+    b.onclick=()=>{hidePopup(true);item.fn?.()};div.appendChild(b);
+  }
+  return openPopup(anchor,div);
+}
+function outsidePopup(e){if(state.popup&&!state.popup.contains(e.target)&&!state.popupAnchor?.contains(e.target))hidePopup()}
 function modal({title,desc,content='',action='Done',danger=false,onConfirm=()=>{},onReady=()=>{}}){hidePopup();const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(t(title))}"><h2>${esc(t(title))}</h2><p>${esc(t(desc||''))}</p>${content}<div class="modal-actions"><button class="cancel">${esc(t('Cancel'))}</button><button class="primary confirm" style="${danger?'background:#d84b4b;border-color:#d84b4b;':''}">${esc(t(action))}</button></div></div>`;document.body.appendChild(backdrop);const box=backdrop.querySelector('.modal');const close=()=>backdrop.remove();box.querySelector('.cancel').onclick=close;box.querySelector('.confirm').onclick=()=>{onConfirm(box);close()};backdrop.addEventListener('click',e=>{if(e.target===backdrop)close()});backdrop.addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();onConfirm(box);close()}});onReady(box)}
 function templateMenu(anchor){showPopup(anchor,Object.entries(templateLabels).map(([key,label])=>({label,preview:key,selected:curPage(visiblePage())?.template===key,fn:()=>{saveHistory();curPage(visiblePage()).template=key;refreshDocument();markChanged();toast(label+' applied')}})).concat([{separator:true},{label:'Apply this paper to all pages',icon:'paper',fn:()=>{saveHistory();const t=curPage(visiblePage()).template;current().pages.forEach(p=>p.template=t);refreshDocument();markChanged();toast('Paper applied to every page')}}]),'PAPER STYLE')}
 function shapeMenu(anchor){showPopup(anchor,[['line','Line'],['arrow','Arrow'],['rect','Rectangle'],['ellipse','Ellipse / circle'],['triangle','Triangle']].map(([key,label])=>({label,icon:'shape',selected:state.shape===key,fn:()=>{state.shape=key;setTool('shape');toast(label+' tool ready')}})),'DRAW A SHAPE')}
@@ -389,16 +447,16 @@ function moreMenu(anchor){showPopup(anchor,[
  {separator:true},{label:'User guide',icon:'book',fn:showManualGuide},{label:'Keyboard shortcuts',icon:'settings',fn:showHelp},
  {label:'About FreeInk',icon:'book',fn:()=>modal({title:'FreeInk · Prototype',desc:'A free, offline-first handwriting notebook inspired by the workflow of Windows inking apps. Your notes are stored in your browser/desktop app on this device. Export a .freeink backup for safekeeping.',action:'Close'})}
  ],'NOTE OPTIONS')}
-function showHelp(){modal({title:'Keyboard shortcuts',desc:'Use these while your focus is on the canvas.',content:`<div class="help-grid">${[['P','Pen'],['K','Pencil'],['H','Highlighter'],['E','Object eraser'],['Shift + E','Pixel eraser'],['L','Lasso selection'],['S','Shapes'],['T','Text'],['Space (hold)','Pan'],['Ctrl + Z','Undo'],['Ctrl + Y','Redo'],['Ctrl + S','Save'],['Ctrl + N','New note'],['Delete','Delete selected'],['Ctrl + D','Duplicate selection']].map(x=>`<span><kbd>${esc(x[0])}</kbd>${esc(t(x[1]))}</span>`).join('')}</div>`,action:'Got it'})}
+function showHelp(){modal({title:'Keyboard shortcuts',desc:'Use these while your focus is on the canvas.',content:`<div class="help-grid">${[['P','Pen'],['K','Pencil'],['H','Highlighter'],['E','Eraser'],['Shift + E','Pixel eraser'],['L','Lasso selection'],['S','Shapes'],['T','Text'],['Space (hold)','Pan'],['Ctrl + Z','Undo'],['Ctrl + Y','Redo'],['Ctrl + S','Save'],['Ctrl + N','New note'],['Delete','Delete selected'],['Ctrl + D','Duplicate selection']].map(x=>`<span><kbd>${esc(x[0])}</kbd>${esc(t(x[1]))}</span>`).join('')}</div>`,action:'Got it'})}
 
 
 function showManualGuide(){
  const vi=I?.getLanguage()==='vi';
  const content=vi?`<div class="guide-content">
  <h3>1. Bắt đầu</h3><p>Nhấn <b>+</b> để tạo ghi chú, đặt tên và chọn giấy kẻ dòng, trắng, ô vuông, chấm hoặc khuông nhạc. Chọn ghi chú trong thư viện bên trái.</p>
- <h3>2. Viết và chỉnh sửa</h3><p>Dùng chuột, màn hình cảm ứng hoặc bút cảm ứng. Chọn Bút mực, Bút chì, Bút đánh dấu, Xóa đối tượng, Tẩy từng phần, Khoanh chọn, Hình dạng hay Văn bản trên thanh công cụ. Đổi màu và độ dày nét.</p>
+ <h3>2. Viết và chỉnh sửa</h3><p>Dùng chuột, màn hình cảm ứng hoặc bút cảm ứng. Chọn Bút mực, Bút chì, Bút đánh dấu, Tẩy, Khoanh chọn, Hình dạng hay Văn bản trên thanh công cụ. Nhấn ô màu tùy chỉnh rồi kéo bảng màu và thanh sắc màu để đổi màu mực trực tiếp; cũng có thể nhập mã hex.</p>
  <p><b>Nét bút ổn định:</b> Khi viết, nét mực theo sau đầu bút khoảng 24 ms để giảm rung; khi nhấc bút, nét hoàn thiện ngay. Bút hỗ trợ áp lực và độ nghiêng nếu phần cứng cung cấp. Có thể bật/tắt tại <b>Tùy chọn ghi chú → Làm mượt nét bút</b>.</p>
- <p><b>Tẩy từng phần (Shift+E):</b> Xóa đúng vùng đầu tẩy đi qua trên nét viết, hình, chữ và ảnh. Đổi kích thước tẩy bằng thanh độ dày. Dùng <b>E</b> để xóa cả đối tượng. Có thể hoàn tác cả hai chế độ.</p>
+ <p><b>Chế độ tẩy:</b> Nhấn nút Tẩy để chọn Xóa đối tượng hoặc Tẩy từng phần trong cùng một menu. Phím <b>E</b> dùng chế độ đã chọn; <b>Shift+E</b> chọn tẩy từng phần. Tẩy từng phần chỉ xóa vùng đầu tẩy đi qua trên nét viết, hình, chữ và ảnh. Đổi kích thước bằng thanh độ dày. Có thể hoàn tác cả hai chế độ.</p>
  <h3>3. Chèn tài liệu</h3><p>Nhấn <b>Nhập tệp</b> để thêm ảnh, PDF, DOCX hoặc tệp <b>.freeink</b>. Dán ảnh chụp màn hình bằng <kbd>Ctrl/⌘ + V</kbd>. Dùng công cụ Khoanh chọn để di chuyển và thay đổi kích thước ảnh. PDF và DOCX cần bản desktop có đủ thư viện; nội dung Word có thể mất định dạng phức tạp.</p>
  <h3>4. Lưu và xuất</h3><p>Ghi chú được tự động lưu trên <b>thiết bị hiện tại</b>, không đồng bộ đám mây. Nhấn <b>Xuất tệp → PDF vector</b> để giữ nét viết sắc nét ở mọi mức phóng to. Ảnh và trang PDF nhập vào vẫn phụ thuộc độ phân giải gốc. Xuất <b>.freeink</b> thường xuyên để sao lưu và chuyển máy. Bản cài Windows đăng ký đuôi .freeink; nhấp đúp để nhập bản sao có thể sửa vào ứng dụng. Thay đổi tự lưu trong FreeInk; xuất lại để cập nhật tệp sao lưu.</p>
  <h3>5. Trang, phóng to và cập nhật</h3><p>Nhấn <b>Thêm trang</b>, thay mẫu giấy, dùng nút +/− để phóng to. Bản cài đặt EXE Windows có nút Cập nhật từ GitHub Releases; bản MSI được nâng cấp bằng Windows Installer. Bản Mac dùng gói DMG; chức năng tự cập nhật cần ứng dụng đã ký và công chứng.</p>
@@ -406,9 +464,9 @@ function showManualGuide(){
  <p><b>Lưu ý:</b> Hãy sao lưu ghi chú trước khi gỡ cài đặt hoặc xóa dữ liệu ứng dụng. Đây là ứng dụng đang phát triển.</p>
  </div>`:`<div class="guide-content">
  <h3>1. Get started</h3><p>Click <b>+</b> to create a notebook, name it, and choose lined, blank, grid, dotted, or music paper. Select saved notebooks from the gallery on the left.</p>
- <h3>2. Draw and edit</h3><p>Write with a mouse, touchscreen, or pen. Choose Pen, Pencil, Highlighter, Object eraser, Pixel eraser, Lasso, Shape, or Text in the toolbar. Adjust color and line thickness.</p>
+ <h3>2. Draw and edit</h3><p>Write with a mouse, touchscreen, or pen. Choose Pen, Pencil, Highlighter, Eraser, Lasso, Shape, or Text in the toolbar. Open the custom color swatch and drag the color field and hue slider to change ink color live, or enter a hex color.</p>
  <p><b>Stabilized ink:</b> While writing, the visible ink trails the stylus by about 24 ms to reduce jitter. It catches up on pen-up. Pressure and tilt affect line width on compatible hardware. Turn it on/off in <b>Note options → Stroke stabilization</b>.</p>
- <p><b>Pixel eraser (Shift+E):</b> Erase only the area you touch on ink, shapes, text, and images. Adjust its size with the width slider. Use <b>E</b> to erase whole objects. Both modes support undo.</p>
+ <p><b>Eraser modes:</b> Click Eraser to choose Object eraser or Pixel eraser in the same menu. <b>E</b> uses the remembered mode; <b>Shift+E</b> selects Pixel eraser. Pixel erasing removes only the area you touch on ink, shapes, text, and images. Adjust its size with the width slider. Both modes support undo.</p>
  <h3>3. Import documents</h3><p>Use <b>Import</b> for images, PDF, DOCX, and <b>.freeink</b> files. Paste screenshots with <kbd>Ctrl/⌘ + V</kbd>. Use Lasso to move or resize images. PDF/DOCX import requires the installed desktop dependencies; complex Word layouts may change.</p>
  <h3>4. Save and export</h3><p>Notes auto-save <b>on this device</b>; there is no cloud sync. Choose <b>Export → Vector PDF</b> to keep handwriting and shapes sharp at any zoom. Imported images and PDF backgrounds have their original pixel resolution. Export <b>.freeink</b> backups regularly for safekeeping and transferring devices. Windows installers register .freeink files; double-click to import an editable local copy into FreeInk. Edits save inside the app; export again to update the backup file.</p>
  <h3>5. Pages, zoom, and updates</h3><p>Click <b>Add page</b>, change paper templates, or use +/− to zoom. The Windows NSIS EXE checks for GitHub updates; MSI upgrades use Windows Installer. On macOS, DMG builds require developer signing and notarization for smooth distribution and self-updating.</p>
@@ -621,7 +679,7 @@ function addEvents(){
  $('language-select').value=I?.getLanguage()||'en';
  $('language-select').addEventListener('change',e=>I?.setLanguage(e.target.value));
  $('guide-btn').onclick=showManualGuide;
- document.addEventListener('freeink:language',()=>{I.apply();renderGallery();updateHeader();showSaved(state.saveError?'Save failed':state.saving?'Saving…':'Saved');syncWidth();const status=latestUpdateStatus;const labels={idle:'Updates',checking:'Checking…',available:'Download update',downloading:'Downloading…',downloaded:'Restart to update',msi:'MSI updates'};$('update-label').textContent=t(labels[status]||'Updates');});
+ document.addEventListener('freeink:language',()=>{I.apply();renderGallery();updateHeader();showSaved(state.saveError?'Save failed':state.saving?'Saving…':'Saved');syncWidth();updateToolButtons();updatePalette();const status=latestUpdateStatus;const labels={idle:'Updates',checking:'Checking…',available:'Download update',downloading:'Downloading…',downloaded:'Restart to update',msi:'MSI updates'};$('update-label').textContent=t(labels[status]||'Updates');});
  $('gallery-toggle').onclick=()=>toggleSidebar();$('sidebar-close').onclick=()=>toggleSidebar(false);$('sidebar-backdrop').onclick=()=>toggleSidebar(false);
  $('new-note').onclick=$('sidebar-new').onclick=showNewNoteModal;
  $('save-note').onclick=saveAll;$('undo').onclick=undo;$('redo').onclick=redo;
@@ -632,20 +690,20 @@ function addEvents(){
  $('options-btn').onclick=e=>moreMenu(e.currentTarget);
  $('import-btn').onclick=()=>$('file-import').click();
  $('file-import').onchange=e=>{importFile(e.target.files[0]);e.target.value=''};$('image-import').onchange=e=>{importFile(e.target.files[0]);e.target.value=''};
- document.querySelectorAll('.tool-button[data-tool]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.tool==='shape'&&state.tool==='shape')shapeMenu(b);else setTool(b.dataset.tool)}));
+ document.querySelectorAll('.tool-button[data-tool]').forEach(b=>b.addEventListener('click',()=>{if(b.id==='eraser-tool'){const open=state.popup?.id==='eraser-menu';setTool(state.eraserMode);if(open)hidePopup(true);else eraserMenu(b)}else if(b.dataset.tool==='shape'&&state.tool==='shape')shapeMenu(b);else setTool(b.dataset.tool)}));
  $('ruler-toggle').onclick=()=>{state.ruler=!state.ruler;document.querySelectorAll('.sheet').forEach(el=>el.classList.toggle('show-ruler',state.ruler));updateToolButtons();toast(state.ruler?'Ruler displayed (visual guide)':'Ruler hidden')};
  $('stroke-width').oninput=e=>setWidth(e.target.value);
- $('custom-color').oninput=e=>{state.color=e.target.value;updatePalette()};
+ $('custom-color').onclick=e=>colorMenu(e.currentTarget);
  $('add-page').onclick=()=>addPage(true);
  $('zoom-in').onclick=()=>setZoom(state.zoom+.1);$('zoom-out').onclick=()=>setZoom(state.zoom-.1);$('zoom-fit').onclick=fitZoom;
  area.addEventListener('scroll',scheduleViewport,{passive:true});
- window.addEventListener('resize',scheduleViewport);
+ window.addEventListener('resize',()=>{hidePopup();scheduleViewport()});
  document.addEventListener('pointerdown',outsidePopup);
  $('operation-cancel').onclick=()=>state.operation?.cancel();
  document.addEventListener('paste',pasteIntoCanvas);
  area.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files'))e.preventDefault()});area.addEventListener('drop',async e=>{e.preventDefault();if(state.operation)return;const files=[...e.dataTransfer.files];for(const f of files)if(!await importFile(f))break});
  document.addEventListener('keydown',e=>{if(state.closing){e.preventDefault();return}if(state.operation){if(e.key==='Escape'){e.preventDefault();state.operation.cancel()}else if(e.ctrlKey||e.metaKey)e.preventDefault();return}const editing=['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)||document.activeElement?.isContentEditable;
-  if(e.key==='Escape'){hidePopup();if(state.selection.length){state.selection=[];refreshDocument()}return}
+  if(e.key==='Escape'){if(state.popup){hidePopup(true);return}if(state.selection.length){state.selection=[];refreshDocument()}return}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveAll();return}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='n'){e.preventDefault();if(!document.querySelector('.modal-backdrop'))showNewNoteModal();return}
   if(editing||document.querySelector('.modal-backdrop'))return;
@@ -655,7 +713,7 @@ function addEvents(){
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){e.preventDefault();duplicateSelection();return}
   if((e.key==='Delete'||e.key==='Backspace')&&state.selection.length){e.preventDefault();deleteSelection();return}
   if(e.code==='Space'&&!e.repeat){e.preventDefault();state.spacePan=true;document.querySelectorAll('.sheet').forEach(s=>s.dataset.tool='hand');return}
-  const shortcuts={p:'pen',k:'pencil',h:'highlighter',e:'eraser',l:'lasso',s:'shape',t:'text'};if(!e.ctrlKey&&!e.metaKey&&shortcuts[e.key.toLowerCase()])setTool(e.shiftKey&&e.key.toLowerCase()==='e'?'pixel-eraser':shortcuts[e.key.toLowerCase()]);
+  const shortcuts={p:'pen',k:'pencil',h:'highlighter',e:state.eraserMode,l:'lasso',s:'shape',t:'text'};if(!e.ctrlKey&&!e.metaKey&&shortcuts[e.key.toLowerCase()])setTool(e.shiftKey&&e.key.toLowerCase()==='e'?'pixel-eraser':shortcuts[e.key.toLowerCase()]);
  });
  document.addEventListener('keyup',e=>{if(e.code==='Space'){state.spacePan=false;updateToolButtons()}});
  window.addEventListener('blur',()=>{state.spacePan=false;finishGesture();updateToolButtons()});

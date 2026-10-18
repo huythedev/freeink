@@ -31,3 +31,27 @@
 .operation-status[hidden]{display:none}.operation-status>span{flex:1;overflow-wrap:anywhere}.operation-status progress{width:min(25vw,220px);height:8px}.operation-status button{flex:none;min-height:30px}
 .sheet[data-loading]::after{content:attr(data-loading);position:absolute;inset:0;display:grid;place-content:center;background:#ffffffb8;color:#36506e;font:14px "Segoe UI",sans-serif;pointer-events:none}
 .sheet[data-tool="pixel-eraser"]{cursor:crosshair}
+
+/* Icon tools and a shared eraser menu leave room for ink controls. */
+.ribbon{overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.ribbon::-webkit-scrollbar{display:none}
+.ribbon-tools .tool-button{width:34px;padding:0;flex:none}.ribbon-tools .tool-dropdown{width:47px;gap:3px}
+.colors,.stroke-width-wrap{flex-shrink:0}
+.color-picker-trigger{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:none;width:43px;height:30px;padding:4px;border:1px solid #dce5ef;border-radius:7px;background:#fff;color:#647184}
+.color-picker-trigger:hover,.color-picker-trigger[aria-expanded="true"]{background:#edf4ff;border-color:#a7c9f5}
+.color-picker-swatch{width:19px;height:19px;flex:none;border:1px solid #0002;border-radius:50%;background:var(--ink-color,#172d4d)}
+.color-picker.popup{width:min(292px,calc(100vw - 16px));min-width:0;max-height:calc(100dvh - 16px);overflow-y:auto;padding:14px}
+.color-picker-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px -4px 10px 0;color:#36506e}
+.color-picker-heading strong{font-size:13px;font-weight:650}.color-picker-close{width:27px;height:27px;font-size:22px}
+.color-field{height:174px;position:relative;border-radius:7px;background-color:var(--color-hue,#f00);background-image:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent);touch-action:none;cursor:crosshair;outline-offset:3px}
+.color-field:focus-visible{outline:2px solid #74a9ff}
+.color-field-thumb{position:absolute;width:13px;height:13px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #0009;transform:translate(-50%,-50%);pointer-events:none}
+.color-picker-label{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:11px;color:#647184}
+.color-hue{-webkit-appearance:none;appearance:none;width:100%;height:12px;margin:4px 0 7px;border-radius:6px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);cursor:pointer;touch-action:pan-y}
+.color-hue::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border:2px solid #fff;border-radius:50%;background:transparent;box-shadow:0 0 0 1px #4a607a,0 1px 4px #0003}
+.color-hue::-moz-range-thumb{width:13px;height:13px;border:2px solid #fff;border-radius:50%;background:transparent;box-shadow:0 0 0 1px #4a607a,0 1px 4px #0003}
+.color-picker-value{display:flex;align-items:flex-end;gap:10px}.color-picker-preview{width:35px;height:35px;flex:none;border:1px solid #dce5ef;border-radius:7px}
+.color-picker-value .color-picker-label{flex:1;min-width:0;margin-top:7px}.color-hex{width:100%;height:35px;padding:6px 9px;border:1px solid #dce5ef;border-radius:7px;font-family:ui-monospace,Consolas,monospace;color:#36506e}
+.color-hex[aria-invalid="true"]{border-color:#c84747}.color-picker-help{margin:12px 0 0;font-size:11px;color:#7b8ba0;line-height:1.5}
+.update-button[data-status="checking"] .update-icon{animation:update-check 1.2s linear infinite;transform-origin:center}
+@keyframes update-check{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.update-button[data-status="checking"] .update-icon{animation:none}}
