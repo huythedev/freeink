@@ -16,11 +16,11 @@ const state={tool:'pen',zoom:1,inkDelay:24,width:3,color:'#000000',gesture:null,
 const canvas={style:{},getBoundingClientRect:()=>({left:0,top:0}),setPointerCapture(){},releasePointerCapture(){},
   addEventListener(type,handler){events.set(type,handler)}};
 const Runtime=require('../runtime');
-const context={Ink,Runtime,maskBounds:Runtime.strokeBounds,state,PAGE_W:816,PAGE_H:1056,performance:{now:()=>clock},
+const context={Ink,Runtime,Images:require('../image-tools'),maskBounds:Runtime.strokeBounds,state,PAGE_W:816,PAGE_H:1056,performance:{now:()=>clock},
   clamp:(n,a,b)=>Math.max(a,Math.min(b,n)),uid:()=>String(nextFrame++),
   document:{querySelector:()=>null},curPage:()=>page,
   area:{scrollTop:0,scrollLeft:0,scrollHeight:1056,clientHeight:1056,getBoundingClientRect:()=>({bottom:1000})},
-  saveHistory(){},drawPage(){},setUndoButtons(){},markChanged(){changes++},
+  saveHistory(){},drawPage(){},setUndoButtons(){},updateImageControls(){},redrawSelection(){},markChanged(){changes++},
   requestAnimationFrame(callback){const id=++nextFrame;frames.set(id,callback);return id},
   cancelAnimationFrame(id){frames.delete(id)}};
 vm.createContext(context);vm.runInContext(source.slice(start,end),context);context.bindDrawing(canvas,0);

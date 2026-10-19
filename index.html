@@ -90,7 +90,7 @@
             <button data-tool="lasso" class="tool-button" title="Lasso select (L)" data-i18n-title="Lasso select (L)"><svg><use href="#i-lasso"/></svg></button>
             <button data-tool="shape" class="tool-button" title="Shapes (S)" data-i18n-title="Shapes (S)"><svg><use href="#i-shape"/></svg></button>
             <button data-tool="text" class="tool-button" title="Text (T)" data-i18n-title="Text (T)"><svg><use href="#i-text"/></svg></button>
-            <button data-tool="hand" class="tool-button" title="Hand / pan (Space)" data-i18n-title="Hand / pan (Space)"><svg><use href="#i-hand"/></svg></button>
+            <button data-tool="hand" class="tool-button" title="Move images / pan (V, Space)" data-i18n-title="Move images / pan (V, Space)"><svg><use href="#i-hand"/></svg></button>
             <span class="ribbon-divider"></span>
             <button class="tool-button" id="ruler-toggle" title="Toggle ruler" data-i18n-title="Toggle ruler"><svg><use href="#i-ruler"/></svg></button>
           </div>
@@ -101,6 +101,17 @@
           <div class="stroke-width-wrap"><span class="width-icon" id="width-preview"></span><input id="stroke-width" type="range" min="1" max="24" value="3" aria-label="Ink thickness" data-i18n-aria="Ink thickness" title="Stroke width" data-i18n-title="Stroke width"/><span class="width-value" id="width-value">3</span></div>
           <span class="ribbon-divider"></span>
           <button class="tool-button paper-btn" id="template-btn" title="Choose paper template" data-i18n-title="Choose paper template"><svg><use href="#i-paper"/></svg><span data-i18n="Paper">Paper</span><svg class="mini-chevron"><use href="#i-chevron"/></svg></button>
+        </div>
+        <div id="image-controls" class="image-controls" role="toolbar" aria-label="Image controls" data-i18n-aria="Image controls" hidden>
+          <span class="image-controls-label" data-i18n="Image">Image</span>
+          <label><span data-i18n="Width">Width</span><input id="image-width" type="number" min="1" max="816" step="1" aria-label="Image width" data-i18n-aria="Image width"></label>
+          <span class="image-dimensions-divider" aria-hidden="true">×</span>
+          <label><span data-i18n="Height">Height</span><input id="image-height" type="number" min="1" max="1056" step="1" aria-label="Image height" data-i18n-aria="Image height"></label>
+          <span class="image-controls-divider"></span>
+          <button id="image-duplicate" class="icon-button" type="button" title="Duplicate image" aria-label="Duplicate image" data-i18n-title="Duplicate image" data-i18n-aria="Duplicate image"><svg aria-hidden="true"><use href="#i-copy"/></svg></button>
+          <button id="image-options" class="icon-button" type="button" title="Image options" aria-label="Image options" data-i18n-title="Image options" data-i18n-aria="Image options" aria-haspopup="menu"><svg aria-hidden="true"><use href="#i-dots"/></svg></button>
+          <button id="image-delete" class="icon-button" type="button" title="Delete image" aria-label="Delete image" data-i18n-title="Delete image" data-i18n-aria="Delete image"><svg aria-hidden="true"><use href="#i-trash"/></svg></button>
+          <span id="image-resize-help" class="image-controls-help" data-i18n="Drag edges or corners · Shift keeps proportions · Space pans">Drag edges or corners · Shift keeps proportions · Space pans</span>
         </div>
         <div class="document-area" id="document-area">
           <div class="pages" id="pages"></div>
@@ -123,6 +134,7 @@
   <script src="ink-engine.js" defer></script>
   <script src="vector-pdf.js" defer></script>
   <script src="color-picker.js" defer></script>
+  <script src="image-tools.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

@@ -18,7 +18,8 @@
 - Dùng chuột, màn hình cảm ứng hoặc bút cảm ứng; chọn bút mực, bút chì, bút đánh dấu, tẩy, khoanh chọn, hình dạng, văn bản hoặc bàn tay.
 - Nhấn nút **Tẩy** để chọn **Xóa đối tượng** hoặc **Tẩy từng phần** trong cùng một menu. Phím **E** dùng chế độ đã chọn; **Shift+E** chọn tẩy từng phần. Xóa đối tượng xóa toàn bộ nét; tẩy từng phần chỉ xóa vùng đầu tẩy đi qua, kể cả trên hình, chữ và ảnh. Thanh độ dày đổi kích thước tẩy; có thể hoàn tác/làm lại.
 - Dùng bảng màu và thanh độ dày nét bút. Nhấn ô màu tùy chỉnh rồi kéo bảng màu và thanh sắc màu để đổi màu mực trực tiếp, hoặc nhập mã hex. Các phím mũi tên chỉnh độ bão hòa/độ sáng; giữ Shift để chỉnh nhanh hơn.
-- Khoanh chọn (Lasso) cho phép di chuyển, sao chép đối tượng và thay đổi kích thước ảnh.
+- Ảnh dán/chèn được chọn sẵn trong vùng đang xem. Dùng **Bàn tay (V)** để kéo ảnh trực tiếp; kéo chỗ trống để cuộn trang. Kéo một trong 8 tay nắm ở cạnh/góc để đổi riêng chiều rộng và chiều cao; giữ **Shift** để giữ tỉ lệ. Thanh chỉnh ảnh có ô nhập kích thước, nhân bản, xóa, xếp trước/sau, vừa vùng đang xem và khôi phục tỉ lệ gốc.
+- Phím mũi tên di chuyển ảnh đã chọn 1 đơn vị; giữ **Shift** để di chuyển 10 đơn vị. **Space** hoặc nút chuột giữa luôn cuộn trang kể cả khi đang trỏ vào ảnh. **Ctrl/⌘ + A** chọn mọi đối tượng không bị khóa trên trang khi vùng vẽ có focus. Nhấp chọn không tạo bước Undo rỗng. Lasso vẫn cho phép khoanh chọn và di chuyển nhiều đối tượng.
 - Công cụ thước hiện chỉ là thước minh họa, chưa có chức năng hút nét theo thước.
 
 ### 3. Nhập tệp và dán
@@ -26,6 +27,8 @@
 - Nhấn **Nhập tệp** để mở ảnh (PNG/JPEG/WebP), PDF, DOCX hoặc ghi chú `.freeink`.
 - Bản cài EXE/MSI đăng ký đuôi `.freeink` với Windows. Nhấp đúp để mở bản sao có thể sửa trong cửa sổ FreeInk đang chạy. Nội dung tự lưu trong ứng dụng; xuất lại `.freeink` để cập nhật tệp sao lưu ban đầu. Nếu Windows đã chọn ứng dụng mặc định khác, dùng **Open with → FreeInk**.
 - Dán ảnh chụp màn hình bằng `Ctrl/⌘ + V` hoặc thả ảnh vào trang.
+- Ảnh thả vào đúng vị trí con trỏ trên trang đích. Chữ dán cũng xuất hiện trong vùng đang xem và được chọn để kéo ngay; nhấp đúp để sửa chữ.
+- Khi phóng to/thu nhỏ, ảnh đang chọn được giữ trong vùng xem. Sửa chữ giữ nguyên màu và độ rộng; đóng ô sửa mà không thay đổi nội dung không tạo Undo. `Ctrl/⌘ + S` lưu cả tiêu đề và kích thước đang nhập.
 - PDF nhập được chuyển thành nền ảnh cho từng trang; nét chú thích mới vẫn chỉnh sửa được. Độ nét nền phụ thuộc độ phân giải khi nhập.
 - DOCX nhập thành văn bản chỉnh sửa được nhưng không đảm bảo giữ nguyên bố cục Word phức tạp.
 - Tác vụ nhập/xuất có nút **Hủy** hoặc phím `Escape`. Khi hủy nhập, tài liệu đang mở không bị thay bằng phần nhập dở.
@@ -51,6 +54,8 @@
 | Bút mực / Bút chì / Đánh dấu | `P` / `K` / `H` |
 | Tẩy / Khoanh chọn / Hình dạng / Văn bản | `E` / `L` / `S` / `T` |
 | Tẩy từng phần | `Shift + E` |
+| Kéo ảnh / cuộn trang | `V` |
+| Di chuyển ảnh / di chuyển nhanh | Phím mũi tên / `Shift + mũi tên` |
 | Di chuyển trang | Giữ `Space` |
 | Lưu / Ghi chú mới | `Ctrl/⌘ + S` / `Ctrl/⌘ + N` |
 | Hoàn tác / Làm lại | `Ctrl/⌘ + Z` / `Ctrl/⌘ + Shift + Z` |
@@ -67,11 +72,17 @@ Click **+** or `Ctrl/⌘ + N` to create a note. Choose paper templates and use t
 
 - **Live stroke stabilization:** ink trails stylus input by about 24 ms to reduce jitter while writing, then immediately catches up on pen-up. Toggle under **Note options → Stroke stabilization**. Compatible pens supply variable pressure and tilt to shape the stroke.
 
-Use your mouse, touch, or stylus with Pen, Pencil, Highlighter, Eraser, Lasso, Shape, or Text. Click **Eraser** to choose **Object eraser** or **Pixel eraser** in one menu. **E** uses the remembered mode; **Shift+E** selects Pixel eraser. Object erasing removes an entire element; pixel erasing removes only the area you touch, including on shapes, text and images. The width slider adjusts the pixel eraser size; both modes support undo/redo. Open the custom color swatch to drag the color field and hue slider for live ink color changes, or enter a hex value. Arrow keys fine-tune saturation/brightness; hold Shift for larger steps. Use Lasso to select, move, duplicate, or resize inserted images. The visual ruler does not currently snap ink.
+Use your mouse, touch, or stylus with Pen, Pencil, Highlighter, Eraser, Lasso, Shape, or Text. Click **Eraser** to choose **Object eraser** or **Pixel eraser** in one menu. **E** uses the remembered mode; **Shift+E** selects Pixel eraser. Object erasing removes an entire element; pixel erasing removes only the area you touch, including on shapes, text and images. The width slider adjusts the pixel eraser size; both modes support undo/redo. Open the custom color swatch to drag the color field and hue slider for live ink color changes, or enter a hex value. Arrow keys fine-tune saturation/brightness; hold Shift for larger steps. The visual ruler does not currently snap ink.
+
+Images appear selected in the visible area when pasted/imported. **Hand (V)** drags images directly and pans on empty space. Resize using any of eight edge/corner handles, freely changing width and height; hold **Shift** to preserve proportions. The floating image controls provide exact dimensions, duplication, deletion, front/back order, fit to view and original proportions. Arrow keys move a selected image by 1 unit; Shift moves it by 10. Hold **Space** or the middle mouse button to pan even over an image. Selection clicks do not consume undo or discard redo. Lasso can still select and move groups; **Ctrl/⌘ + A** selects unlocked objects on the focused page.
 
 ### 3. Paste and import
 
 Use **Import** for PNG/JPEG/WebP, PDF, DOCX, or editable `.freeink` backups. Paste an image with `Ctrl/⌘ + V` or drag images onto a page. PDFs are rasterized as page backgrounds; newly drawn ink remains editable. DOCX is converted to editable text and images but complex Word layout is not faithfully preserved. Use **Cancel** or `Escape` to stop file work; cancelled imports do not replace the current note with a partial document. Standalone HTML does not support PDF/DOCX import.
+
+Dropped images use the pointer position on the target page. Pasted text appears in the visible area and is selected so it can be dragged immediately; double-click to edit. Erased image regions follow moves and independent resizing, including in editable backups, PNG and vector PDF export. Backups containing stretched eraser masks require a version of FreeInk supporting this feature.
+
+Zoom keeps the selected image in view. Text editing retains color and width; closing unchanged text preserves undo/redo. `Ctrl/⌘ + S` also commits the title and image dimensions currently being entered. Popup menus support arrow keys, Enter and Escape; long notifications wrap on narrow windows.
 
 Windows EXE/MSI installers register `.freeink` files. Double-click to import an editable local copy into the existing FreeInk window. Edits auto-save inside the app; export again to update the original backup file. If another default was previously selected in Windows, choose **Open with → FreeInk**.
 
@@ -85,6 +96,6 @@ The Windows NSIS EXE supports in-app GitHub updates; MSI installers are upgraded
 
 ### Keyboard shortcuts
 
-`P` Pen · `K` Pencil · `H` Highlighter · `E` Eraser (remembered mode) · `Shift+E` Pixel eraser · `L` Lasso · `S` Shape · `T` Text · Hold `Space` Pan · `Ctrl/⌘ + Z` Undo · `Ctrl/⌘ + Shift + Z` Redo · `Ctrl/⌘ + N` New · `Ctrl/⌘ + S` Save · `Ctrl/⌘ + D` Duplicate · `?` Guide.
+`P` Pen · `K` Pencil · `H` Highlighter · `E` Eraser (remembered mode) · `Shift+E` Pixel eraser · `L` Lasso · `S` Shape · `T` Text · `V` Move images / pan · Hold `Space` Pan · `Ctrl/⌘ + Z` Undo · `Ctrl/⌘ + Shift + Z` Redo · `Ctrl/⌘ + N` New · `Ctrl/⌘ + S` Save · `Ctrl/⌘ + D` Duplicate · `?` Guide.
 
 Pixel-erased backups require a FreeInk release with pixel eraser support. / Bản sao lưu đã tẩy từng phần cần phiên bản FreeInk hỗ trợ tính năng này.

@@ -162,7 +162,7 @@
         let state=maskCache.get(key);
         if(!state){
           let path='q 1 g 0 0 816 1056 re f Q\n';
-          for(const mask of masks)path+=pressureStroke({points:mask.points.map(p=>({...p,p:.5})),width:mask.width,tool:'pen',color:'#000000'});
+          for(const mask of masks){const aspect=mask.aspect||1;path+=`q 1 0 0 ${aspect.toFixed(12)} 0 0 cm\n`+pressureStroke({points:mask.points.map(p=>({x:p.x,y:p.y/aspect,p:.5})),width:mask.width,tool:'pen',color:'#000000'})+'Q\n'}
           const maskId=w.alloc(),bytes=latinBytes(path),id=w.alloc(),name='Erase'+maskStates.length;
           w.put(maskId,`<</Type /XObject /Subtype /Form /FormType 1 /BBox [0 0 ${PW} ${PH}] /Group <</S /Transparency /CS /DeviceGray /I true>> /Resources <</ExtGState <</GS100 ${gs100} 0 R>>>> /Length ${bytes.length}>>`,bytes);
           w.put(id,`<</Type /ExtGState /SMask <</S /Luminosity /G ${maskId} 0 R /BC [1]>>>>`);

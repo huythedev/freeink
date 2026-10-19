@@ -22,6 +22,7 @@ jobs:
           node --check updater.js
           node --check app.js
           node --check color-picker.js
+          node --check image-tools.js
           node --check ink-engine.js
           node --check i18n.js
           node --check server.js

@@ -4,7 +4,7 @@ const source=fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'u
 (async()=>{
   let release,fail=false,calls=0;const statuses=[];
   const state={notes:[{id:'a',pages:[{items:[]}]}],currentId:'a',revision:0,savedRevision:0,dirtyNotes:new Set(),saving:false,store:{async save(){calls++;await new Promise(resolve=>release=resolve);if(fail)throw Error('Quota')}}};
-  const c={state,Runtime:require('../runtime'),showSaved:v=>statuses.push(v),toast(){},console:{error(){}},setTimeout:()=>1,clearTimeout(){},localStorage:{removeItem(){}},finishActiveText(){},finishGesture(){state.gesture=null}};
+  const c={state,document:{activeElement:null},Runtime:require('../runtime'),showSaved:v=>statuses.push(v),toast(){},console:{error(){}},setTimeout:()=>1,clearTimeout(){},localStorage:{removeItem(){}},finishActiveText(){},finishGesture(){state.gesture=null}};
   vm.createContext(c);vm.runInContext(source.slice(source.indexOf('function armSave('),source.indexOf('function markChanged(')),c);
   c.queueSave('a');const saving=c.persist();await Promise.resolve();c.queueSave('a');release();await saving;
   assert.equal(state.savedRevision,1);assert.equal(state.revision,2);assert.equal(statuses.at(-1),'Saving…','older save must not hide newer unsaved changes');
