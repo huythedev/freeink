@@ -177,7 +177,7 @@
     if(!maskSurface){if(typeof OffscreenCanvas!=='undefined')maskSurface=new OffscreenCanvas(w,h);else maskSurface=ctx.canvas.ownerDocument.createElement('canvas')}
     if(maskSurface.width<w)maskSurface.width=Math.ceil(w/64)*64;if(maskSurface.height<h)maskSurface.height=Math.ceil(h/64)*64;
     const paint=maskSurface.getContext('2d');paint.setTransform(1,0,0,1,0,0);paint.clearRect(0,0,maskSurface.width,maskSurface.height);paint.setTransform(m.a,m.b,m.c,m.d,m.e-x,m.f-y);
-    draw(paint);for(const mask of masks)eraseCanvas(paint,mask.points,mask.width);
+    draw(paint);for(const mask of masks){const aspect=mask.aspect||1;paint.save();paint.scale(1,aspect);eraseCanvas(paint,aspect===1?mask.points:mask.points.map(p=>({x:p.x,y:p.y/aspect})),mask.width);paint.restore()}
     ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(maskSurface,0,0,w,h,x,y,w,h);ctx.restore();
   }
   function releaseBuffers(){if(surface)surface.width=surface.height=1;if(maskSurface)maskSurface.width=maskSurface.height=1;surfaceUsedW=surfaceUsedH=0}

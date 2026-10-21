@@ -165,7 +165,9 @@
       if(!Array.isArray(masks)||masks.length>5000)throw Error('Invalid pixel eraser data');
       item.erasures=masks.map(mask=>{
         if(!Array.isArray(mask?.points)||!mask.points.length||mask.points.length>LIMITS.points)throw Error('Pixel eraser data exceeds the import limit');
-        const value={width:number(mask.width,20,.1,2000),points:mask.points.map(p=>({x:number(p?.x),y:number(p?.y)}))},key=JSON.stringify(value);
+        const value={width:number(mask.width,20,.000001,1000000),points:mask.points.map(p=>({x:number(p?.x,undefined,-1e9,1e9),y:number(p?.y,undefined,-1e9,1e9)}))};
+        if(mask.aspect!==undefined)value.aspect=number(mask.aspect,1,1e-9,1e9);
+        const key=JSON.stringify(value);
         if(sharedMasks.has(key))return sharedMasks.get(key);
         if((points+=value.points.length)>LIMITS.points)throw Error('Pixel eraser data exceeds the import limit');
         sharedMasks.set(key,value);return value;

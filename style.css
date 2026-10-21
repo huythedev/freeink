@@ -55,3 +55,20 @@
 .update-button[data-status="checking"] .update-icon{animation:update-check 1.2s linear infinite;transform-origin:center}
 @keyframes update-check{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.update-button[data-status="checking"] .update-icon{animation:none}}
+
+/* Image controls stay above the document without moving it under the pointer. */
+.editor{position:relative}
+.document-area.direct-pan{touch-action:none;cursor:grab}
+.image-controls{position:absolute;z-index:18;bottom:calc(var(--status) + 12px);left:8px;right:8px;width:max-content;max-width:calc(100% - 16px);margin:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;padding:7px 10px;background:#fff;border:1px solid #d8e5f5;border-radius:11px;box-shadow:0 5px 22px #23344f26;color:#51667f;font-size:11px}
+.image-controls[hidden]{display:none}.image-controls-label{font-weight:650;color:#326fbd;margin-right:3px}.image-controls label{display:flex;align-items:center;gap:5px}.image-controls input{width:61px;height:29px;border:1px solid #dce5ef;border-radius:6px;padding:3px 5px;color:#36506e;font-variant-numeric:tabular-nums}.image-controls-divider{height:22px;border-left:1px solid #e1e8f1;margin:0 2px}.image-controls .icon-button{width:29px;height:29px}.image-controls-help{max-width:230px;font-size:10px;color:#8190a4;line-height:1.4;margin-left:4px}.image-controls #image-delete:hover{color:#ba3945;background:#fff0f1}
+body:has(#image-controls:not([hidden])) .toast{bottom:calc(var(--status) + 84px)}
+.toast{max-width:calc(100vw - 24px);white-space:normal;text-align:center;overflow-wrap:anywhere;line-height:1.45}
+.image-controls input::-webkit-inner-spin-button,.image-controls input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.image-selection{position:absolute;z-index:3;pointer-events:none;border:1.5px solid #3485ed;box-shadow:0 0 0 1px #fff8}
+.image-handle{position:absolute;pointer-events:auto;touch-action:none;width:28px;height:28px;padding:0;margin:0;border:0;background:transparent;transform:translate(-50%,-50%);border-radius:5px}
+.image-handle::after{content:"";position:absolute;inset:9px;border:1.5px solid #3485ed;border-radius:2px;background:#fff;box-shadow:0 1px 3px #18345426}
+.image-handle:hover::after,.image-handle:focus-visible::after{background:#dcecff}.image-handle:focus-visible{outline:2px solid #74a9ff;outline-offset:-2px}
+.image-handle-nw,.image-handle-se{cursor:nwse-resize}.image-handle-ne,.image-handle-sw{cursor:nesw-resize}.image-handle-n,.image-handle-s{cursor:ns-resize}.image-handle-e,.image-handle-w{cursor:ew-resize}
+.sheet canvas:focus-visible{outline:2px solid #74a9ff;outline-offset:-2px}
+@media(max-width:1100px){.image-controls-help{display:none}}
+@media(max-width:600px){.image-controls{gap:4px;padding:6px;bottom:calc(var(--status) + 8px)}.image-controls-label{display:none}.image-controls label{gap:3px;font-size:10px}.image-controls input{width:48px}.image-controls-divider{margin:0}.image-controls .icon-button{width:27px}}
